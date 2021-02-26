@@ -1,3 +1,5 @@
+package com.github.cptimario.datatables;
+
 import java.util.List;
 
 public class DataTablesResponse<E> {

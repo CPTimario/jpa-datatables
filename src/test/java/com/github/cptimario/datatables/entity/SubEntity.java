@@ -1,3 +1,5 @@
+package com.github.cptimario.datatables.entity;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 

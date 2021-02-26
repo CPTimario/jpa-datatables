@@ -1,7 +1,8 @@
+package com.github.cptimario.datatables.components;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,12 +20,16 @@ public class ColumnTest {
         hasRelationshipColumn = new Column();
         multiFieldColumn = new Column();
 
+        singleFieldColumn.setName("field");
         singleFieldColumn.setData("field");
 
+        nullableColumn.setName("nullableEntityField");
         nullableColumn.setData("entity?.field");
 
+        hasRelationshipColumn.setName("entityField");
         hasRelationshipColumn.setData("entity.field");
 
+        multiFieldColumn.setName("firstFieldSecondField");
         multiFieldColumn.setData("firstField + secondField");
     }
 
@@ -55,15 +60,45 @@ public class ColumnTest {
         assertEquals("field", singleFieldColumn.getFullFieldName());
         assertEquals("entity.field", nullableColumn.getFullFieldName());
         assertEquals("entity.field", hasRelationshipColumn.getFullFieldName());
-        assertEquals("", multiFieldColumn.getFullFieldName());
+        assertEquals("firstField secondField", multiFieldColumn.getFullFieldName());
+    }
+    
+    @Test
+    public void getFullFieldNameListTestNotMultiFieldInvalidCall() {
+        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' is not a multi-field column.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getFullFieldNameList());
+        assertEquals(exception.getMessage(), message);
+    }
+
+    @Test
+    public void getFullFieldNameListTest() {
+        assertIterableEquals(List.of("firstField", "secondField"), multiFieldColumn.getFullFieldNameList());
+    }
+
+    @Test
+    public void getRelationshipFieldNameTestMultiFieldInvalidCall() {
+        String message = "Column '" + multiFieldColumn.getFullFieldName() + "' is a multi-field column.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> multiFieldColumn.getRelationshipFieldName());
+        assertEquals(exception.getMessage(), message);
+    }
+
+    @Test
+    public void getRelationshipFieldNameTestNoRelationshipInvalidCall() {
+        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' has no relationship.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getRelationshipFieldName());
+        assertEquals(exception.getMessage(), message);
     }
 
     @Test
     public void getRelationshipFieldNameTest() {
-        assertEquals("", singleFieldColumn.getRelationshipFieldName());
-        assertEquals("entity", nullableColumn.getRelationshipFieldName());
         assertEquals("entity", hasRelationshipColumn.getRelationshipFieldName());
-        assertEquals("", multiFieldColumn.getRelationshipFieldName());
+    }
+
+    @Test
+    public void getSubColumnListTestNotMultiFieldInvalidCall() {
+        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' is not a multi-field column.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getSubColumnList());
+        assertEquals(exception.getMessage(), message);
     }
 
     @Test
@@ -83,6 +118,13 @@ public class ColumnTest {
     }
 
     @Test
+    public void getLeftJoinClauseTestMultiFieldInvalidCall() {
+        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' is not a multi-field column.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getSubColumnList());
+        assertEquals(exception.getMessage(), message);
+    }
+
+    @Test
     public void getLeftJoinClauseTest() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(" Left Join ");
@@ -90,6 +132,5 @@ public class ColumnTest {
         stringBuilder.append(hasRelationshipColumn.getRelationshipFieldName());
         stringBuilder.append(" right");
         assertEquals(stringBuilder.toString(), hasRelationshipColumn.getLeftJoinClause("left", "right"));
-        assertEquals("", multiFieldColumn.getLeftJoinClause("left", "right"));
     }
 }

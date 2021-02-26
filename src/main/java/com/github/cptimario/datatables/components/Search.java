@@ -1,8 +1,23 @@
+package com.github.cptimario.datatables.components;
+
 import java.util.Objects;
 
-final class Search {
+public class Search {
     private String value;
     private boolean regex;
+
+    public Search() {
+        this("", false);
+    }
+
+    public Search(String value) {
+        this(value, false);
+    }
+
+    public Search(String value, boolean isRegex) {
+        this.value = value;
+        this.regex = isRegex;
+    }
 
     public String getValue() {
         return value;

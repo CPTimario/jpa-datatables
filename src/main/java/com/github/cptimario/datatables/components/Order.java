@@ -1,4 +1,6 @@
-final class Order {
+package com.github.cptimario.datatables.components;
+
+public class Order {
     private int column;
     private String dir;
 
