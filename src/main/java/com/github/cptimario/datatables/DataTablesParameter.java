@@ -4,7 +4,6 @@ import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.Order;
 import com.github.cptimario.datatables.components.Search;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DataTablesParameter {
@@ -14,15 +13,6 @@ public class DataTablesParameter {
     private Search search;
     private List<Order> orderList;
     private List<Column> columnList;
-
-    public DataTablesParameter() {
-        this.draw = 0;
-        this.start = 0;
-        this.length = 10;
-        this.search = new Search();
-        this.orderList = new ArrayList<>();
-        this.columnList = new ArrayList<>();
-    }
 
     public int getDraw() {
         return draw;
@@ -74,5 +64,13 @@ public class DataTablesParameter {
 
     public String getSearchValue() {
         return search.getValue();
+    }
+
+    public void flagColumnsContainingDateByIndex(String delimiter, int... columnIndexes) {
+        for (int index : columnIndexes) {
+            Column column = columnList.get(index);
+            column.setContainsDate(true);
+            column.setDelimiter(delimiter);
+        }
     }
 }

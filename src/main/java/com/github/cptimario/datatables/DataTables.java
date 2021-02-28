@@ -2,32 +2,35 @@ package com.github.cptimario.datatables;
 
 import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.JoinType;
+import org.hibernate.Session;
 
 import javax.persistence.Entity;
+import javax.persistence.Query;
 import java.util.*;
 
 public class DataTables<E> {
-    private final Class<E> entity;
     private final String entityName;
-    private JoinType joinType;
-    private DataTablesParameter dataTablesParameter;
-    private HashMap<String, String> aliasMap;
+    private final JoinType joinType;
+    private final DataTablesParameter dataTablesParameter;
+    private final HashMap<String, String> aliasMap;
     private HashMap<String, String> namedParameterMap;
 
-    public DataTables(Class<E> entity, DataTablesParameter dataTablesParameter) {
-        this(entity, dataTablesParameter, JoinType.CROSS_JOIN);
+    public static <E> DataTables<E> of(Class<E> entity, DataTablesParameter dataTablesParameter) {
+        return new DataTables<>(entity, dataTablesParameter, JoinType.CROSS_JOIN);
     }
 
-    public DataTables(Class<E> entity, DataTablesParameter dataTablesParameter, JoinType joinType) {
+    public static <E> DataTables<E> of(Class<E> entity, DataTablesParameter dataTablesParameter, JoinType joinType) {
+        return new DataTables<>(entity, dataTablesParameter, joinType);
+    }
+
+    private DataTables(Class<E> entity, DataTablesParameter dataTablesParameter, JoinType joinType) {
         if (!isEntity(entity))
             throw new IllegalArgumentException(entity.getName() + " is not a valid entity.");
         Objects.requireNonNull(dataTablesParameter);
-        this.entity = entity;
         this.joinType = joinType;
         this.entityName = entity.getSimpleName();
         this.dataTablesParameter = dataTablesParameter;
-        aliasMap = new HashMap<>();
-        namedParameterMap = new HashMap<>();
+        this.aliasMap = new HashMap<>();
         registerAliasMap();
     }
 
@@ -35,63 +38,122 @@ public class DataTables<E> {
         return Objects.nonNull(entity.getAnnotation(Entity.class));
     }
 
-    public String getQueryString(QueryParameter queryParameter) {
-
-        return "";
+    public DataTablesResponse<E> getDataTablesResponse(QueryParameter queryParameter) {
+        DataTablesResponse<E> dataTablesResponse = new DataTablesResponse<>();
+        dataTablesResponse.setDraw(dataTablesParameter.getDraw());
+        dataTablesResponse.setData(getSearchResultList(queryParameter));
+        dataTablesResponse.setRecordsTotal(getRecordsTotalCount(queryParameter));
+        dataTablesResponse.setRecordsFiltered(getRecordsFilteredCount(queryParameter));
+        return dataTablesResponse;
     }
 
-    public List<String> getSearchQueryList(QueryParameter queryParameter) {
-        String searchString, fieldName, namedParameter, fieldQuery;
+    @SuppressWarnings("unchecked")
+    public List<E> getSearchResultList(QueryParameter queryParameter) {
+        Session session = queryParameter.getSession();
+        Query query = session.createQuery(getQuery(queryParameter, true));
+        for (Map.Entry<String, String> parameter : namedParameterMap.entrySet()) {
+            query.setParameter(parameter.getKey(), parameter.getValue());
+        }
+        query.setFirstResult(dataTablesParameter.getStart());
+        query.setMaxResults(dataTablesParameter.getLength());
+        return (List<E>) query.getResultList();
+    }
+
+    public int getRecordsTotalCount(QueryParameter queryParameter) {
+        Session session = queryParameter.getSession();
+        queryParameter.setSelectClause(" Select Count(*) ");
+        Query query = session.createQuery(getQuery(queryParameter, false));
+        return (int) query.getSingleResult();
+    }
+
+    public int getRecordsFilteredCount(QueryParameter queryParameter) {
+        Session session = queryParameter.getSession();
+        queryParameter.setSelectClause(" Select Count(*) ");
+        Query query = session.createQuery(getQuery(queryParameter, true));
+        return (int) query.getSingleResult();
+    }
+
+    public String getQuery(QueryParameter queryParameter, boolean isSearch) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (isSearch)
+            queryParameter.addWhereCondition(getSearchCondition(queryParameter));
+        stringBuilder.append(queryParameter.getSelectClause());
+        stringBuilder.append(getFromClause());
+        stringBuilder.append(queryParameter.getWhereClause());
+        stringBuilder.append(queryParameter.getGroupByClause());
+        stringBuilder.append(queryParameter.getHavingClause());
+        stringBuilder.append(queryParameter.getOrderByClause());
+        return stringBuilder.toString();
+    }
+
+    public String getSearchCondition(QueryParameter queryParameter) {
+        StringBuilder stringBuilder = new StringBuilder();
         List<String> searchQueryList = new ArrayList<>();
-        this.namedParameterMap = queryParameter;
+        namedParameterMap = new HashMap<>(queryParameter);
         for (Column column : dataTablesParameter.getColumnList()) {
-            searchString = getSearchString(column);
+            String searchString = getSearchString(column);
             if (column.isSearchable() && !"".equals(searchString)) {
-                fieldName = getQueryFieldName(column);
-                namedParameter = "val_" + namedParameterMap.size();
-                fieldQuery = getFieldQuery(fieldName, namedParameter);
+                String fieldName = getQueryFieldName(column);
+                String namedParameter = "value_" + namedParameterMap.size();
+                String fieldQuery = getFieldQuery(fieldName, namedParameter);
                 searchQueryList.add(fieldQuery);
                 namedParameterMap.put(namedParameter, searchString);
             }
         }
-        return searchQueryList;
-    }
-
-    String getFieldQuery(String fieldName, String namedParameter) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(fieldName);
-        stringBuilder.append(" LIKE CONCAT('%', :");
-        stringBuilder.append(namedParameter);
-        stringBuilder.append(", '%') ESCAPE '#' ");
+        stringBuilder.append(" ( ");
+        stringBuilder.append(String.join(" Or ", searchQueryList));
+        stringBuilder.append(" ) ");
         return stringBuilder.toString();
     }
 
+    String getFieldQuery(String fieldName, String namedParameter) {
+        return fieldName + " LIKE CONCAT('%', :" + namedParameter + ", '%') ESCAPE '#' ";
+    }
+
     String getQueryFieldName(Column column) {
+        if (!column.isMultiField())
+            return getSingleFieldColumnQueryFieldName(column);
+        return getMultiFieldColumnQueryFieldName(column);
+    }
+
+    private String getSingleFieldColumnQueryFieldName(Column column) {
         StringBuilder stringBuilder = new StringBuilder();
-        if (!column.isMultiField()) {
-            String alias = getColumnAlias(column);
-            stringBuilder.append(alias);
-            stringBuilder.append(".");
-            stringBuilder.append(column.getFullFieldName());
-        } else {
-            List<Column> subColumnList = column.getSubColumnList();
-            int lastSubColumnIndex = subColumnList.size() - 1;
-            stringBuilder.append(" CONCAT ( ");
-            for (Column subColumn : subColumnList) {
-                String queryFieldName = getQueryFieldName(subColumn);
-                stringBuilder.append(queryFieldName);
-                if (subColumnList.indexOf(subColumn) < lastSubColumnIndex)
-                    stringBuilder.append(", ' ',");
-            }
-            stringBuilder.append(" ) ");
+        String fieldName = column.getFullFieldName();
+        String alias = getColumnAlias(column);
+        stringBuilder.append(alias);
+        stringBuilder.append(".");
+        if (joinType.equals(JoinType.LEFT_JOIN)) {
+            int startIndex = fieldName.indexOf(".") + 1;
+            fieldName = fieldName.substring(startIndex);
         }
+        stringBuilder.append(fieldName);
+        return stringBuilder.toString();
+    }
+
+    private String getMultiFieldColumnQueryFieldName(Column column) {
+        StringBuilder stringBuilder = new StringBuilder();
+        List<Column> subColumnList = column.getSubColumnList();
+        int lastSubColumnIndex = subColumnList.size() - 1;
+        stringBuilder.append(" CONCAT ( ");
+        for (Column subColumn : subColumnList) {
+            String queryFieldName = getSingleFieldColumnQueryFieldName(subColumn);
+            stringBuilder.append(queryFieldName);
+            if (subColumnList.indexOf(subColumn) < lastSubColumnIndex)
+                stringBuilder.append(", ' ',");
+        }
+        stringBuilder.append(" ) ");
         return stringBuilder.toString();
     }
 
     String getSearchString(Column column) {
         if (!"".equals(column.getSearchValue()))
-            return column.getSearch().getValue();
-        return dataTablesParameter.getSearch().getValue();
+            return column.getSearchValue();
+        return dataTablesParameter.getSearchValue();
+    }
+
+    String getDateSearchString(Column column, String delimiter) {
+        // TODO
+        return "";
     }
 
     String getColumnAlias(Column column) {

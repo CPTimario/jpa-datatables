@@ -5,17 +5,15 @@ import com.github.cptimario.datatables.components.JoinType;
 import com.github.cptimario.datatables.components.Search;
 import com.github.cptimario.datatables.entity.InvalidEntity;
 import com.github.cptimario.datatables.entity.ValidEntity;
-import org.hibernate.Session;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DataTablesTest {
+class DataTablesTest {
     private Column id;
     private Column data;
     private Column firstSubEntity;
@@ -28,23 +26,20 @@ public class DataTablesTest {
     private DataTables<ValidEntity> leftJoinDataTables;
     private DataTables<ValidEntity> crossJoinDataTables;
 
-    @Mock
-    private Session session;
-
     @BeforeEach
-    public void setup() {
+    void setup() {
         columnList = getColumnList();
-        queryParameter = new QueryParameter(session);
+        queryParameter = new QueryParameter();
 
         crossJoinParameter = new DataTablesParameter();
         crossJoinParameter.setColumnList(columnList);
         crossJoinParameter.setSearch(new Search("123"));
-        crossJoinDataTables = new DataTables<>(ValidEntity.class, crossJoinParameter);
+        crossJoinDataTables = DataTables.of(ValidEntity.class, crossJoinParameter);
 
         leftJoinParameter = new DataTablesParameter();
         leftJoinParameter.setColumnList(columnList);
         leftJoinParameter.setSearch(new Search("123"));
-        leftJoinDataTables = new DataTables<>(ValidEntity.class, leftJoinParameter, JoinType.LEFT_JOIN);
+        leftJoinDataTables = DataTables.of(ValidEntity.class, leftJoinParameter, JoinType.LEFT_JOIN);
     }
 
     private List<Column> getColumnList() {
@@ -68,23 +63,23 @@ public class DataTablesTest {
     }
 
     @Test
-    public void isEntityTest() {
+    void isEntityTest() {
         assertTrue(DataTables.isEntity(ValidEntity.class));
         assertFalse(DataTables.isEntity(InvalidEntity.class));
     }
 
     @Test
-    public void datatablesConstructionInvalidEntity() {
-        assertThrows(IllegalArgumentException.class, () -> new DataTables<>(InvalidEntity.class, new DataTablesParameter()));
+    void datatablesConstructionInvalidEntity() {
+        assertThrows(IllegalArgumentException.class, () -> DataTables.of(InvalidEntity.class, leftJoinParameter));
     }
 
     @Test
-    public void datatablesConstructionInvalidDataTablesParameters() {
-        assertThrows(NullPointerException.class, () -> new DataTables<>(ValidEntity.class, null));
+    void datatablesConstructionInvalidDataTablesParameters() {
+        assertThrows(NullPointerException.class, () -> DataTables.of(ValidEntity.class, null));
     }
 
     @Test
-    public void getLeftJoinClauseTestSingleColumn() {
+    void getLeftJoinClauseTestSingleColumn() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Left Join ");
         stringBuilder.append("valid_0.");
@@ -94,7 +89,7 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getLeftJoinClauseTestMultipleColumn() {
+    void getLeftJoinClauseTestMultipleColumn() {
         Column firstSubColumn = secondSubEntity.getSubColumnList().get(0);
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Left Join ");
@@ -109,7 +104,7 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getFromClauseTestDefault() {
+    void getFromClauseTestDefault() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" From ");
         stringBuilder.append("ValidEntity");
@@ -118,7 +113,7 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getFromClauseTestCrossJoin() {
+    void getFromClauseTestCrossJoin() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" From ");
         stringBuilder.append("ValidEntity");
@@ -127,7 +122,7 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getFromClauseTestLeftJoin() {
+    void getFromClauseTestLeftJoin() {
         Column firstSubColumn = secondSubEntity.getSubColumnList().get(0);
         stringBuilder = new StringBuilder();
         stringBuilder.append(" From ");
@@ -145,7 +140,7 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getSearchStringTest() {
+    void getSearchStringTest() {
         String globalSearch = crossJoinParameter.getSearchValue();
         assertEquals(globalSearch, crossJoinDataTables.getSearchString(id));
         assertEquals(data.getSearchValue(), crossJoinDataTables.getSearchString(data));
@@ -154,7 +149,7 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getColumnAliasTest() {
+    void getColumnAliasTest() {
         assertEquals("valid_0", crossJoinDataTables.getColumnAlias(id));
         assertEquals("valid_0", crossJoinDataTables.getColumnAlias(data));
         assertEquals("valid_0", crossJoinDataTables.getColumnAlias(firstSubEntity));
@@ -167,7 +162,7 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getQueryFieldNameTestCrossJoin() {
+    void getQueryFieldNameTestCrossJoin() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" CONCAT ( ");
         stringBuilder.append("valid_0.secondSubEntity.firstData, ' ',");
@@ -179,19 +174,19 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getQueryFieldNameTestLeftJoin() {
+    void getQueryFieldNameTestLeftJoin() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" CONCAT ( ");
         stringBuilder.append("secon_2.firstData, ' ',");
         stringBuilder.append("secon_2.secondData ) ");
         assertEquals("valid_0.id", leftJoinDataTables.getQueryFieldName(id));
         assertEquals("valid_0.data", leftJoinDataTables.getQueryFieldName(data));
-        assertEquals("first_1.firstSubEntity.firstData", leftJoinDataTables.getQueryFieldName(firstSubEntity));
+        assertEquals("first_1.firstData", leftJoinDataTables.getQueryFieldName(firstSubEntity));
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getQueryFieldName(secondSubEntity));
     }
 
     @Test
-    public void getFieldQueryTest() {
+    void getFieldQueryTest() {
         String fieldName = "valid_0.id";
         String namedParameter = "id_0";
         stringBuilder = new StringBuilder();
@@ -203,30 +198,64 @@ public class DataTablesTest {
     }
 
     @Test
-    public void getSearchQueryListTestCrossJoin() {
-        List<String> searchQueryList = new ArrayList<>();
+    void getSearchConditionTestCrossJoin() {
+        List<String> searchConditionList = new ArrayList<>();
         stringBuilder = new StringBuilder();
         stringBuilder.append(" CONCAT ( ");
         stringBuilder.append("valid_0.secondSubEntity.firstData, ' ',");
         stringBuilder.append("valid_0.secondSubEntity.secondData ) ");
-        searchQueryList.add(crossJoinDataTables.getFieldQuery("valid_0.id", "val_0"));
-        searchQueryList.add(crossJoinDataTables.getFieldQuery("valid_0.data", "val_1"));
-        searchQueryList.add(crossJoinDataTables.getFieldQuery("valid_0.firstSubEntity.firstData", "val_2"));
-        searchQueryList.add(crossJoinDataTables.getFieldQuery(stringBuilder.toString(), "val_3"));
-        assertIterableEquals(searchQueryList, crossJoinDataTables.getSearchQueryList(queryParameter));
+        searchConditionList.add(crossJoinDataTables.getFieldQuery("valid_0.id", "value_0"));
+        searchConditionList.add(crossJoinDataTables.getFieldQuery("valid_0.data", "value_1"));
+        searchConditionList.add(crossJoinDataTables.getFieldQuery("valid_0.firstSubEntity.firstData", "value_2"));
+        searchConditionList.add(crossJoinDataTables.getFieldQuery(stringBuilder.toString(), "value_3"));
+        String searchCondition = " ( " + String.join(" Or ", searchConditionList) + " ) ";
+        assertEquals(searchCondition, crossJoinDataTables.getSearchCondition(queryParameter));
     }
 
     @Test
-    public void getSearchQueryListTestLeftJoin() {
-        List<String> searchQueryList = new ArrayList<>();
+    void getSearchConditionTestLeftJoin() {
+        List<String> searchConditionList = new ArrayList<>();
         stringBuilder = new StringBuilder();
         stringBuilder.append(" CONCAT ( ");
         stringBuilder.append("secon_2.firstData, ' ',");
         stringBuilder.append("secon_2.secondData ) ");
-        searchQueryList.add(crossJoinDataTables.getFieldQuery("valid_0.id", "val_0"));
-        searchQueryList.add(crossJoinDataTables.getFieldQuery("valid_0.data", "val_1"));
-        searchQueryList.add(crossJoinDataTables.getFieldQuery("first_1.firstData", "val_2"));
-        searchQueryList.add(crossJoinDataTables.getFieldQuery(stringBuilder.toString(), "val_3"));
-        assertIterableEquals(searchQueryList, crossJoinDataTables.getSearchQueryList(queryParameter));
+        searchConditionList.add(leftJoinDataTables.getFieldQuery("valid_0.id", "value_0"));
+        searchConditionList.add(leftJoinDataTables.getFieldQuery("valid_0.data", "value_1"));
+        searchConditionList.add(leftJoinDataTables.getFieldQuery("first_1.firstData", "value_2"));
+        searchConditionList.add(leftJoinDataTables.getFieldQuery(stringBuilder.toString(), "value_3"));
+        String searchCondition = " ( " + String.join(" Or ", searchConditionList) + " ) ";
+        assertEquals(searchCondition, leftJoinDataTables.getSearchCondition(queryParameter));
+    }
+
+    @Test
+    void getQueryTestCrossJoinAndIsSearchFalse() {
+        stringBuilder = new StringBuilder();
+        stringBuilder.append(crossJoinDataTables.getFromClause());
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, false));
+    }
+
+    @Test
+    void getQueryTestCrossJoinAndIsSearchTrue() {
+        stringBuilder = new StringBuilder();
+        stringBuilder.append(crossJoinDataTables.getFromClause());
+        stringBuilder.append(" Where ");
+        stringBuilder.append(crossJoinDataTables.getSearchCondition(queryParameter));
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, true));
+    }
+
+    @Test
+    void getQueryTestLeftJoinAndIsSearchFalse() {
+        stringBuilder = new StringBuilder();
+        stringBuilder.append(leftJoinDataTables.getFromClause());
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, false));
+    }
+
+    @Test
+    void getQueryTestLeftJoinAndIsSearchTrue() {
+        stringBuilder = new StringBuilder();
+        stringBuilder.append(leftJoinDataTables.getFromClause());
+        stringBuilder.append(" Where ");
+        stringBuilder.append(leftJoinDataTables.getSearchCondition(queryParameter));
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, true));
     }
 }

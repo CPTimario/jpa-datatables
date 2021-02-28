@@ -11,6 +11,8 @@ public class Column {
     private String name;
     private boolean searchable;
     private Search search;
+    private String delimiter;
+    private boolean containsDate;
 
     public Column() {
         this.data = "";
@@ -53,6 +55,24 @@ public class Column {
 
     public String getSearchValue() {
         return search.getValue();
+    }
+
+    public String getDelimiter() {
+        return delimiter;
+    }
+
+    public void setDelimiter(String delimiter) {
+        if (!containsDate)
+            throw new IllegalCallerException("Column '" + getFullFieldName() + "' does not contain date.");
+        this.delimiter = delimiter;
+    }
+
+    public boolean isContainsDate() {
+        return containsDate;
+    }
+
+    public void setContainsDate(boolean containsDate) {
+        this.containsDate = containsDate;
     }
 
     public boolean isMultiField() {
