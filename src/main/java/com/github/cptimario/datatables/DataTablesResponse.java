@@ -6,7 +6,8 @@ public class DataTablesResponse<E> {
     private int draw;
     private int recordsTotal;
     private int recordsFiltered;
-    private List<E> data;
+    private List<?> data;
+    private List<E> resultList;
     private String error;
 
     public int getDraw() {
@@ -33,12 +34,20 @@ public class DataTablesResponse<E> {
         this.recordsFiltered = recordsFiltered;
     }
 
-    public List<E> getData() {
+    public List<?> getData() {
         return data;
     }
 
-    public void setData(List<E> data) {
+    public void setData(List<?> data) {
         this.data = data;
+    }
+
+    public List<E> getResultList() {
+        return resultList;
+    }
+
+    public void setResultList(List<E> resultList) {
+        this.resultList = resultList;
     }
 
     public String getError() {

@@ -13,7 +13,7 @@ public class DataTables<E> {
     private final JoinType joinType;
     private final DataTablesParameter dataTablesParameter;
     private final HashMap<String, String> aliasMap;
-    private HashMap<String, String> namedParameterMap;
+    private HashMap<String, Object> namedParameterMap;
 
     public static <E> DataTables<E> of(Class<E> entity, DataTablesParameter dataTablesParameter) {
         return new DataTables<>(entity, dataTablesParameter, JoinType.CROSS_JOIN);
@@ -24,18 +24,12 @@ public class DataTables<E> {
     }
 
     private DataTables(Class<E> entity, DataTablesParameter dataTablesParameter, JoinType joinType) {
-        if (!isEntity(entity))
-            throw new IllegalArgumentException(entity.getName() + " is not a valid entity.");
         Objects.requireNonNull(dataTablesParameter);
         this.joinType = joinType;
         this.entityName = entity.getSimpleName();
         this.dataTablesParameter = dataTablesParameter;
         this.aliasMap = new HashMap<>();
         registerAliasMap();
-    }
-
-    static <E> boolean isEntity(Class<E> entity) {
-        return Objects.nonNull(entity.getAnnotation(Entity.class));
     }
 
     public DataTablesResponse<E> getDataTablesResponse(QueryParameter queryParameter) {
@@ -51,7 +45,7 @@ public class DataTables<E> {
     public List<E> getSearchResultList(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
         Query query = session.createQuery(getQuery(queryParameter, true));
-        for (Map.Entry<String, String> parameter : namedParameterMap.entrySet()) {
+        for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
         }
         query.setFirstResult(dataTablesParameter.getStart());
@@ -127,6 +121,8 @@ public class DataTables<E> {
             fieldName = fieldName.substring(startIndex);
         }
         stringBuilder.append(fieldName);
+        if (Objects.nonNull(column.getFormat()))
+            return "Format(" + stringBuilder.toString() + ", '" + column.getFormat() + "')";
         return stringBuilder.toString();
     }
 
@@ -149,11 +145,6 @@ public class DataTables<E> {
         if (!"".equals(column.getSearchValue()))
             return column.getSearchValue();
         return dataTablesParameter.getSearchValue();
-    }
-
-    String getDateSearchString(Column column, String delimiter) {
-        // TODO
-        return "";
     }
 
     String getColumnAlias(Column column) {

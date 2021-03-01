@@ -66,11 +66,17 @@ public class DataTablesParameter {
         return search.getValue();
     }
 
-    public void flagColumnsContainingDateByIndex(String delimiter, int... columnIndexes) {
+    public void setColumnFormat(String format, int... columnIndexes) {
+        List<Column> columnList = getColumnList();
         for (int index : columnIndexes) {
             Column column = columnList.get(index);
-            column.setContainsDate(true);
-            column.setDelimiter(delimiter);
+            if (column.isMultiField()) {
+                for (Column subColumn : column.getSubColumnList()) {
+                    subColumn.setFormat(format);
+                }
+            } else {
+                column.setFormat(format);
+            }
         }
     }
 }
