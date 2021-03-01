@@ -35,8 +35,10 @@ public class DataTables<E> {
 
     public DataTablesResponse<E> getDataTablesResponse(QueryParameter queryParameter) {
         DataTablesResponse<E> dataTablesResponse = new DataTablesResponse<>();
+        List<E> resultList = getSearchResultList(queryParameter);
         dataTablesResponse.setDraw(dataTablesParameter.getDraw());
-        dataTablesResponse.setData(getSearchResultList(queryParameter));
+        dataTablesResponse.setData(resultList);
+        dataTablesResponse.setResultList(resultList);
         dataTablesResponse.setRecordsTotal(getRecordsTotalCount(queryParameter));
         dataTablesResponse.setRecordsFiltered(getRecordsFilteredCount(queryParameter));
         return dataTablesResponse;
