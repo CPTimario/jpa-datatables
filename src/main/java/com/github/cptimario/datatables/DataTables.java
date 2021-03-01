@@ -54,18 +54,18 @@ public class DataTables<E> {
         return (List<E>) query.getResultList();
     }
 
-    public int getRecordsTotalCount(QueryParameter queryParameter) {
+    public long getRecordsTotalCount(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
         queryParameter.setSelectClause(" Select Count(*) ");
         Query query = session.createQuery(getQuery(queryParameter, false));
-        return (int) query.getSingleResult();
+        return (long) query.getSingleResult();
     }
 
-    public int getRecordsFilteredCount(QueryParameter queryParameter) {
+    public long getRecordsFilteredCount(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
         queryParameter.setSelectClause(" Select Count(*) ");
         Query query = session.createQuery(getQuery(queryParameter, true));
-        return (int) query.getSingleResult();
+        return (long) query.getSingleResult();
     }
 
     public String getQuery(QueryParameter queryParameter, boolean isSearch) {
