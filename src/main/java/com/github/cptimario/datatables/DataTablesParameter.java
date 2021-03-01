@@ -4,6 +4,7 @@ import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.Order;
 import com.github.cptimario.datatables.components.Search;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataTablesParameter {
@@ -13,6 +14,11 @@ public class DataTablesParameter {
     private Search search;
     private List<Order> orderList;
     private List<Column> columnList;
+
+    public DataTablesParameter() {
+        columnList = new ArrayList<>();
+        orderList = new ArrayList<>();
+    }
 
     public int getDraw() {
         return draw;
