@@ -113,9 +113,11 @@ public class DataTables<E> {
                 namedParameterMap.put(namedParameter, searchString);
             }
         }
-        stringBuilder.append(" ( ");
-        stringBuilder.append(String.join(" Or ", searchQueryList));
-        stringBuilder.append(" ) ");
+        if (!searchQueryList.isEmpty()) {
+            stringBuilder.append(" ( ");
+            stringBuilder.append(String.join(" Or ", searchQueryList));
+            stringBuilder.append(" ) ");
+        }
         return stringBuilder.toString();
     }
 

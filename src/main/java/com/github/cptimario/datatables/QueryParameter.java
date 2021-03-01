@@ -82,31 +82,36 @@ public class QueryParameter extends HashMap<String, Object> {
     }
 
     public void setOrderConditions(List<String> orderConditions) {
-        this.orderConditions = new HashSet<>(orderConditions);;
+        this.orderConditions = new HashSet<>(orderConditions);
+        ;
     }
 
     public void addWhereCondition(String condition) {
         if (Objects.isNull(whereConditions))
             whereConditions = new LinkedHashSet<>();
-        whereConditions.add(condition);
+        if (Objects.nonNull(condition) && !"".equals(condition.trim()))
+            whereConditions.add(condition);
     }
 
     public void addGroupByField(String field) {
         if (Objects.isNull(groupByFields))
             groupByFields = new LinkedHashSet<>();
-        groupByFields.add(field);
+        if (Objects.nonNull(field) && !"".equals(field.trim()))
+            groupByFields.add(field);
     }
 
     public void addHavingCondition(String condition) {
         if (Objects.isNull(havingConditions))
             havingConditions = new LinkedHashSet<>();
-        havingConditions.add(condition);
+        if (Objects.nonNull(condition) && !"".equals(condition.trim()))
+            havingConditions.add(condition);
     }
 
     public void addOrderCondition(String condition) {
         if (Objects.isNull(orderConditions))
             orderConditions = new LinkedHashSet<>();
-        orderConditions.add(condition);
+        if (Objects.nonNull(condition) && !"".equals(condition.trim()))
+            orderConditions.add(condition);
     }
 
     public String getWhereClause() {
