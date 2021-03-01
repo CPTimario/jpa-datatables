@@ -74,15 +74,15 @@ public class Column {
     }
 
     public boolean isMultiField() {
-        return data.contains("+");
+        return Objects.nonNull(data) && data.contains("+");
     }
 
     public boolean hasRelationship() {
-        return data.contains(".");
+        return Objects.nonNull(data) && data.contains(".");
     }
 
     public boolean isNullable() {
-        return data.contains("?");
+        return Objects.nonNull(data) && data.contains("?");
     }
 
     public String getFullFieldName() {
