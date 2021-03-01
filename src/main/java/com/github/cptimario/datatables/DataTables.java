@@ -59,6 +59,9 @@ public class DataTables<E> {
         Session session = queryParameter.getSession();
         queryParameter.setSelectClause(" Select Count(*) ");
         Query query = session.createQuery(getQuery(queryParameter, false));
+        for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
+            query.setParameter(parameter.getKey(), parameter.getValue());
+        }
         return (long) query.getSingleResult();
     }
 
@@ -66,6 +69,9 @@ public class DataTables<E> {
         Session session = queryParameter.getSession();
         queryParameter.setSelectClause(" Select Count(*) ");
         Query query = session.createQuery(getQuery(queryParameter, true));
+        for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
+            query.setParameter(parameter.getKey(), parameter.getValue());
+        }
         return (long) query.getSingleResult();
     }
 
