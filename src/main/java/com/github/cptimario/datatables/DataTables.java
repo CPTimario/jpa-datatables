@@ -199,22 +199,25 @@ public class DataTables<E> {
         for (Column column : columnList) {
             if (column.isMultiField()) {
                 for (Column subColumn : column.getSubColumnList()) {
-                    leftJoinSet.add(getLeftJoinClause(subColumn));
+                    addLeftJoinClause(leftJoinSet, subColumn);
                 }
-            } else if (column.hasRelationship()) {
-                leftJoinSet.add(getLeftJoinClause(column));
+            } else {
+                addLeftJoinClause(leftJoinSet, column);
             }
         }
         return String.join(" ", leftJoinSet);
     }
 
-    String getLeftJoinClause(Column column) {
-        String leftTableAlias, rightTableAlias;
-        String fieldName = column.getRelationshipFieldName();
-        registerAlias(fieldName);
-        leftTableAlias = aliasMap.get(entityName);
-        rightTableAlias = aliasMap.get(fieldName);
-        return column.getLeftJoinClause(leftTableAlias, rightTableAlias);
+    private void addLeftJoinClause(Set<String> leftJoinSet, Column column) {
+        if (column.hasRelationship()) {
+            String leftJoinClause, leftTableAlias, rightTableAlias;
+            String fieldName = column.getRelationshipFieldName();
+            registerAlias(fieldName);
+            leftTableAlias = aliasMap.get(entityName);
+            rightTableAlias = aliasMap.get(fieldName);
+            leftJoinClause = column.getLeftJoinClause(leftTableAlias, rightTableAlias);
+            leftJoinSet.add(leftJoinClause);
+        }
     }
 
     private void registerAliasMap() {

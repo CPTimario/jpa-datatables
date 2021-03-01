@@ -66,16 +66,6 @@ class DataTablesTest {
     }
 
     @Test
-    void getLeftJoinClauseTestSingleColumn() {
-        stringBuilder = new StringBuilder();
-        stringBuilder.append(" Left Join ");
-        stringBuilder.append("valid_0.");
-        stringBuilder.append(firstSubEntity.getRelationshipFieldName());
-        stringBuilder.append(" first_1");
-        assertEquals(stringBuilder.toString(), leftJoinDataTables.getLeftJoinClause(firstSubEntity));
-    }
-
-    @Test
     void getLeftJoinClauseTestMultipleColumn() {
         Column firstSubColumn = secondSubEntity.getSubColumnList().get(0);
         stringBuilder = new StringBuilder();
