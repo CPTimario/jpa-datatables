@@ -10,6 +10,7 @@ public class Column {
     private String data;
     private String name;
     private boolean searchable;
+    private boolean orderable;
     private Search search;
     private String format;
 
@@ -42,6 +43,14 @@ public class Column {
 
     public void setSearchable(boolean searchable) {
         this.searchable = searchable;
+    }
+
+    public boolean isOrderable() {
+        return orderable;
+    }
+
+    public void setOrderable(boolean orderable) {
+        this.orderable = orderable;
     }
 
     public Search getSearch() {

@@ -2,6 +2,7 @@ package com.github.cptimario.datatables;
 
 import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.JoinType;
+import com.github.cptimario.datatables.components.Order;
 import org.hibernate.Session;
 
 import javax.persistence.Entity;
@@ -69,8 +70,10 @@ public class DataTables<E> {
 
     public String getQuery(QueryParameter queryParameter, boolean isSearch) {
         StringBuilder stringBuilder = new StringBuilder();
-        if (isSearch)
+        if (isSearch) {
             queryParameter.addWhereCondition(getSearchCondition(queryParameter));
+            addOrderableColumns(queryParameter);
+        }
         stringBuilder.append(queryParameter.getSelectClause());
         stringBuilder.append(getFromClause());
         stringBuilder.append(queryParameter.getWhereClause());
@@ -78,6 +81,22 @@ public class DataTables<E> {
         stringBuilder.append(queryParameter.getHavingClause());
         stringBuilder.append(queryParameter.getOrderByClause());
         return stringBuilder.toString();
+    }
+
+    private void addOrderableColumns(QueryParameter queryParameter) {
+        for (Order order : dataTablesParameter.getOrderList()) {
+            int index = order.getColumn();
+            Column column = dataTablesParameter.getColumnList().get(index);
+            if (column.isOrderable())
+                queryParameter.addOrderCondition(getOrderQuery(order));
+        }
+    }
+
+    private String getOrderQuery(Order order) {
+        int index = order.getColumn();
+        Column column = dataTablesParameter.getColumnList().get(index);
+        String fieldName = getQueryFieldName(column);
+        return fieldName + " " + order.getDir();
     }
 
     public String getSearchCondition(QueryParameter queryParameter) {
