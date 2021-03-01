@@ -5,7 +5,6 @@ import com.github.cptimario.datatables.components.JoinType;
 import com.github.cptimario.datatables.components.Order;
 import org.hibernate.Session;
 
-import javax.persistence.Entity;
 import javax.persistence.Query;
 import java.util.*;
 
@@ -86,9 +85,9 @@ public class DataTables<E> {
     }
 
     private void addOrderableColumns(QueryParameter queryParameter) {
-        for (Order order : dataTablesParameter.getOrderList()) {
+        for (Order order : dataTablesParameter.getOrder()) {
             int index = order.getColumn();
-            Column column = dataTablesParameter.getColumnList().get(index);
+            Column column = dataTablesParameter.getColumns().get(index);
             if (column.isOrderable())
                 queryParameter.addOrderCondition(getOrderQuery(order));
         }
@@ -96,7 +95,7 @@ public class DataTables<E> {
 
     private String getOrderQuery(Order order) {
         int index = order.getColumn();
-        Column column = dataTablesParameter.getColumnList().get(index);
+        Column column = dataTablesParameter.getColumns().get(index);
         String fieldName = getQueryFieldName(column);
         return fieldName + " " + order.getDir();
     }
@@ -105,7 +104,7 @@ public class DataTables<E> {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> searchQueryList = new ArrayList<>();
         namedParameterMap = new HashMap<>(queryParameter);
-        for (Column column : dataTablesParameter.getColumnList()) {
+        for (Column column : dataTablesParameter.getColumns()) {
             String searchString = getSearchString(column);
             if (column.isSearchable() && !"".equals(searchString)) {
                 String fieldName = getQueryFieldName(column);
@@ -184,7 +183,7 @@ public class DataTables<E> {
         stringBuilder.append(" ");
         stringBuilder.append(aliasMap.get(entityName));
         if (joinType.equals(JoinType.LEFT_JOIN)) {
-            stringBuilder.append(getLeftJoinClause(dataTablesParameter.getColumnList()));
+            stringBuilder.append(getLeftJoinClause(dataTablesParameter.getColumns()));
         }
         return stringBuilder.toString();
     }
@@ -214,7 +213,7 @@ public class DataTables<E> {
 
     private void registerAliasMap() {
         registerAlias(entityName);
-        for (Column column : dataTablesParameter.getColumnList()) {
+        for (Column column : dataTablesParameter.getColumns()) {
             registerAlias(column);
         }
     }

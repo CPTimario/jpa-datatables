@@ -32,12 +32,12 @@ class DataTablesTest {
         queryParameter = new QueryParameter();
 
         crossJoinParameter = new DataTablesParameter();
-        crossJoinParameter.setColumnList(columnList);
+        crossJoinParameter.setColumns(columnList);
         crossJoinParameter.setSearch(new Search("123"));
         crossJoinDataTables = DataTables.of(ValidEntity.class, crossJoinParameter);
 
         leftJoinParameter = new DataTablesParameter();
-        leftJoinParameter.setColumnList(columnList);
+        leftJoinParameter.setColumns(columnList);
         leftJoinParameter.setSearch(new Search("123"));
         leftJoinDataTables = DataTables.of(ValidEntity.class, leftJoinParameter, JoinType.LEFT_JOIN);
     }

@@ -12,12 +12,12 @@ public class DataTablesParameter {
     private int start;
     private int length;
     private Search search;
-    private List<Order> orderList;
-    private List<Column> columnList;
+    private List<Order> order;
+    private List<Column> columns;
 
     public DataTablesParameter() {
-        columnList = new ArrayList<>();
-        orderList = new ArrayList<>();
+        columns = new ArrayList<>();
+        order = new ArrayList<>();
     }
 
     public int getDraw() {
@@ -52,20 +52,20 @@ public class DataTablesParameter {
         this.search = search;
     }
 
-    public List<Order> getOrderList() {
-        return orderList;
+    public List<Order> getOrder() {
+        return order;
     }
 
-    public void setOrderList(List<Order> orderList) {
-        this.orderList = orderList;
+    public void setOrder(List<Order> order) {
+        this.order = order;
     }
 
-    public List<Column> getColumnList() {
-        return columnList;
+    public List<Column> getColumns() {
+        return columns;
     }
 
-    public void setColumnList(List<Column> columnList) {
-        this.columnList = columnList;
+    public void setColumns(List<Column> columns) {
+        this.columns = columns;
     }
 
     public String getSearchValue() {
@@ -73,7 +73,7 @@ public class DataTablesParameter {
     }
 
     public void setColumnFormat(String format, int... columnIndexes) {
-        List<Column> columnList = getColumnList();
+        List<Column> columnList = getColumns();
         for (int index : columnIndexes) {
             Column column = columnList.get(index);
             if (column.isMultiField()) {
