@@ -1,5 +1,7 @@
 package com.github.cptimario.datatables;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 
 public class DataTablesResponse<E> {
@@ -7,6 +9,7 @@ public class DataTablesResponse<E> {
     private long recordsTotal;
     private long recordsFiltered;
     private List<?> data;
+    @JsonIgnore
     private List<E> resultList;
     private String error;
 

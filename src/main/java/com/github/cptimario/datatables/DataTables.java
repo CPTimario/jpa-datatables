@@ -7,6 +7,8 @@ import org.hibernate.Session;
 
 import javax.persistence.Query;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DataTables<E> {
     private final String entityName;
@@ -25,9 +27,9 @@ public class DataTables<E> {
 
     private DataTables(Class<E> entity, DataTablesParameter dataTablesParameter, JoinType joinType) {
         Objects.requireNonNull(dataTablesParameter);
-        this.joinType = joinType;
         this.entityName = entity.getSimpleName();
         this.dataTablesParameter = dataTablesParameter;
+        this.joinType = joinType;
         this.aliasMap = new HashMap<>();
         registerAliasMap();
     }
@@ -57,7 +59,8 @@ public class DataTables<E> {
 
     public long getRecordsTotalCount(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
-        queryParameter.setSelectClause(" Select Count(*) ");
+        queryParameter.setSelectClause(getCountQuery(queryParameter));
+        queryParameter.setGroupByFields(Collections.emptySet());
         Query query = session.createQuery(getQuery(queryParameter, false));
         for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
@@ -67,7 +70,8 @@ public class DataTables<E> {
 
     public long getRecordsFilteredCount(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
-        queryParameter.setSelectClause(" Select Count(*) ");
+        queryParameter.setSelectClause(getCountQuery(queryParameter));
+        queryParameter.setGroupByFields(Collections.emptySet());
         Query query = session.createQuery(getQuery(queryParameter, true));
         for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
@@ -75,19 +79,89 @@ public class DataTables<E> {
         return (long) query.getSingleResult();
     }
 
+    String getCountQuery(QueryParameter queryParameter) {
+        StringBuilder stringBuilder = new StringBuilder();
+        Set<String> groupByFieldsWithAlias = new HashSet<>();
+        Set<String> groupByFields = queryParameter.getGroupByFields();
+        stringBuilder.append(" Select Count(");
+        if (!groupByFields.isEmpty()) {
+            stringBuilder.append(" Distinct ");
+            for (String field : groupByFields) {
+                groupByFieldsWithAlias.add(getClauseWithAlias(field));
+            }
+            stringBuilder.append(String.join(", ", groupByFieldsWithAlias));
+        } else {
+            stringBuilder.append("*");
+        }
+        stringBuilder.append(") ");
+        return stringBuilder.toString();
+    }
+
     public String getQuery(QueryParameter queryParameter, boolean isSearch) {
         StringBuilder stringBuilder = new StringBuilder();
-        if (isSearch) {
-            queryParameter.addWhereCondition(getSearchCondition(queryParameter));
-            addOrderableColumns(queryParameter);
+        addOrderableColumns(queryParameter);
+        if (queryParameter.getSelectClause().isEmpty()) {
+            queryParameter.setSelectClause(" Select " + aliasMap.get(entityName));
         }
         stringBuilder.append(queryParameter.getSelectClause());
         stringBuilder.append(getFromClause());
-        stringBuilder.append(queryParameter.getWhereClause());
-        stringBuilder.append(queryParameter.getGroupByClause());
-        stringBuilder.append(queryParameter.getHavingClause());
-        stringBuilder.append(queryParameter.getOrderByClause());
+        stringBuilder.append(getWhereClause(queryParameter, isSearch));
+        stringBuilder.append(getGroupByClause(queryParameter));
+        stringBuilder.append(getHavingClause(queryParameter));
+        stringBuilder.append(getOrderClause(queryParameter));
         return stringBuilder.toString();
+    }
+
+    String getWhereClause(QueryParameter queryParameter, boolean isSearch) {
+        Set<String> whereConditionsWithAlias = new LinkedHashSet<>();
+        Set<String> whereConditions = queryParameter.getWhereConditions();
+        for (String condition : whereConditions)
+            whereConditionsWithAlias.add(getClauseWithAlias(condition));
+        queryParameter.setWhereConditions(whereConditionsWithAlias);
+        if (isSearch)
+            queryParameter.addWhereCondition(getSearchCondition(queryParameter));
+        return queryParameter.getWhereClause();
+    }
+
+    String getGroupByClause(QueryParameter queryParameter) {
+        Set<String> groupByFieldsWithAlias = new LinkedHashSet<>();
+        Set<String> groupByFields = queryParameter.getGroupByFields();
+        for (String condition : groupByFields)
+            groupByFieldsWithAlias.add(getClauseWithAlias(condition));
+        queryParameter.setGroupByFields(groupByFieldsWithAlias);
+        return queryParameter.getGroupByClause();
+    }
+
+    String getHavingClause(QueryParameter queryParameter) {
+        Set<String> havingConditionsWithAlias = new LinkedHashSet<>();
+        Set<String> havingConditions = queryParameter.getHavingConditions();
+        for (String condition : havingConditions)
+            havingConditionsWithAlias.add(getClauseWithAlias(condition));
+        queryParameter.setHavingConditions(havingConditionsWithAlias);
+        return queryParameter.getHavingClause();
+    }
+
+    String getOrderClause(QueryParameter queryParameter) {
+        Set<String> orderConditionsWithAlias = new LinkedHashSet<>();
+        Set<String> orderConditions = queryParameter.getOrderConditions();
+        for (String condition : orderConditions)
+            orderConditionsWithAlias.add(getClauseWithAlias(condition));
+        queryParameter.setOrderConditions(orderConditionsWithAlias);
+        return queryParameter.getOrderByClause();
+    }
+
+    String getClauseWithAlias(String field) {
+        String entityAlias = aliasMap.get(entityName);
+        String regex = entityAlias + "\\.(?<field>\\w+)(?:\\.\\w+)+";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(field);
+        boolean isLeftJoin = joinType.equals(JoinType.LEFT_JOIN);
+        if (isLeftJoin && matcher.find()) {
+            String fieldName = matcher.group("field");
+            String alias = aliasMap.get(fieldName);
+            return field.replace(entityAlias + "." + fieldName, alias);
+        }
+        return field;
     }
 
     private void addOrderableColumns(QueryParameter queryParameter) {
@@ -221,7 +295,7 @@ public class DataTables<E> {
     }
 
     private void registerAliasMap() {
-        registerAlias(entityName);
+        aliasMap.put(entityName, entityName.toLowerCase());
         for (Column column : dataTablesParameter.getColumns()) {
             registerAlias(column);
         }

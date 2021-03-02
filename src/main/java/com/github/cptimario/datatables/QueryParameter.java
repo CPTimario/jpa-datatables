@@ -38,6 +38,8 @@ public class QueryParameter extends HashMap<String, Object> {
     }
 
     public Set<String> getWhereConditions() {
+        if (Objects.isNull(whereConditions))
+            return Collections.emptySet();
         return whereConditions;
     }
 
@@ -50,6 +52,8 @@ public class QueryParameter extends HashMap<String, Object> {
     }
 
     public Set<String> getGroupByFields() {
+        if (Objects.isNull(groupByFields))
+            return Collections.emptySet();
         return groupByFields;
     }
 
@@ -62,6 +66,8 @@ public class QueryParameter extends HashMap<String, Object> {
     }
 
     public Set<String> getHavingConditions() {
+        if (Objects.isNull(havingConditions))
+            return Collections.emptySet();
         return havingConditions;
     }
 
@@ -74,6 +80,8 @@ public class QueryParameter extends HashMap<String, Object> {
     }
 
     public Set<String> getOrderConditions() {
+        if (Objects.isNull(orderConditions))
+            return Collections.emptySet();
         return orderConditions;
     }
 
@@ -83,7 +91,6 @@ public class QueryParameter extends HashMap<String, Object> {
 
     public void setOrderConditions(List<String> orderConditions) {
         this.orderConditions = new HashSet<>(orderConditions);
-        ;
     }
 
     public void addWhereCondition(String condition) {
