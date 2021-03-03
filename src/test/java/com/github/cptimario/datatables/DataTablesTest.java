@@ -2,6 +2,7 @@ package com.github.cptimario.datatables;
 
 import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.JoinType;
+import com.github.cptimario.datatables.components.QueryType;
 import com.github.cptimario.datatables.components.Search;
 import com.github.cptimario.datatables.entity.ValidEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -174,17 +175,17 @@ class DataTablesTest {
 
     @Test
     void getQueryFieldNameTestFormattedColumn() {
-        String formattedFieldName = "Format(first_1.date, 'yyyy/MM/dd')";
+        String formattedFieldName = "function('date_format', first_1.date, '%Y/%m/%d')";
         stringBuilder = new StringBuilder();
         stringBuilder.append(" CONCAT ( ");
         stringBuilder.append("secon_2.firstData, ' ',");
         stringBuilder.append("secon_2.secondData ) ");
-        leftJoinParameter.setColumnFormat("yyyy/MM/dd", 4);
+        leftJoinParameter.setDateColumnFormat("%Y/%m/%d", 4);
         assertEquals("validentity.id", leftJoinDataTables.getQueryFieldName(id));
         assertEquals("validentity.data", leftJoinDataTables.getQueryFieldName(data));
         assertEquals("first_1.firstData", leftJoinDataTables.getQueryFieldName(firstSubEntity));
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getQueryFieldName(secondSubEntity));
-        assertEquals(formattedFieldName, leftJoinDataTables.getQueryFieldName(firstSubEntityDate));
+        assertEquals(formattedFieldName, leftJoinDataTables.getQueryFieldName(firstSubEntityDate, true));
     }
 
     @Test
@@ -212,7 +213,7 @@ class DataTablesTest {
         searchConditionList.add(crossJoinDataTables.getFieldQuery(stringBuilder.toString(), "value_3"));
         searchConditionList.add(crossJoinDataTables.getFieldQuery("validentity.firstSubEntity.date", "value_4"));
         String searchCondition = " ( " + String.join(" Or ", searchConditionList) + " ) ";
-        assertEquals(searchCondition, crossJoinDataTables.getSearchCondition(queryParameter));
+        assertEquals(searchCondition, crossJoinDataTables.getSearchCondition());
     }
 
     @Test
@@ -228,43 +229,62 @@ class DataTablesTest {
         searchConditionList.add(leftJoinDataTables.getFieldQuery(stringBuilder.toString(), "value_3"));
         searchConditionList.add(leftJoinDataTables.getFieldQuery("first_1.date", "value_4"));
         String searchCondition = " ( " + String.join(" Or ", searchConditionList) + " ) ";
-        assertEquals(searchCondition, leftJoinDataTables.getSearchCondition(queryParameter));
+        assertEquals(searchCondition, leftJoinDataTables.getSearchCondition());
     }
 
     @Test
-    void getQueryTestCrossJoinAndIsSearchFalse() {
+    void getQueryTestCrossJoinTotalCountQuery() {
         stringBuilder = new StringBuilder();
-        stringBuilder.append(" Select validentity");
+        stringBuilder.append(" Select Count(*) ");
         stringBuilder.append(crossJoinDataTables.getFromClause());
-        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, false));
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, QueryType.TOTAL_COUNT));
     }
 
     @Test
-    void getQueryTestCrossJoinAndIsSearchTrue() {
+    void getQueryTestCrossJoinFilteredCountQuery() {
+        stringBuilder = new StringBuilder();
+        stringBuilder.append(" Select Count(*) ");
+        stringBuilder.append(crossJoinDataTables.getFromClause());
+        stringBuilder.append(" Where ");
+        stringBuilder.append(crossJoinDataTables.getSearchCondition());
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, QueryType.FILTERED_COUNT));
+    }
+
+    @Test
+    void getQueryTestCrossJoinResultListQuery() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Select validentity");
         stringBuilder.append(crossJoinDataTables.getFromClause());
         stringBuilder.append(" Where ");
-        stringBuilder.append(crossJoinDataTables.getSearchCondition(queryParameter));
-        System.out.println(crossJoinDataTables.getWhereClause(queryParameter, true));
-        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, true));
+        stringBuilder.append(crossJoinDataTables.getSearchCondition());
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, QueryType.RESULT_LIST));
     }
 
     @Test
-    void getQueryTestLeftJoinAndIsSearchFalse() {
+    void getQueryTestLeftJoinTotalCountQuery() {
         stringBuilder = new StringBuilder();
-        stringBuilder.append(" Select validentity");
+        stringBuilder.append(" Select Count(*) ");
         stringBuilder.append(leftJoinDataTables.getFromClause());
-        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, false));
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, QueryType.TOTAL_COUNT));
     }
 
     @Test
-    void getQueryTestLeftJoinAndIsSearchTrue() {
+    void getQueryTestLeftJoinFilteredCountQuery() {
+        stringBuilder = new StringBuilder();
+        stringBuilder.append(" Select Count(*) ");
+        stringBuilder.append(leftJoinDataTables.getFromClause());
+        stringBuilder.append(" Where ");
+        stringBuilder.append(leftJoinDataTables.getSearchCondition());
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, QueryType.FILTERED_COUNT));
+    }
+
+    @Test
+    void getQueryTestLeftJoinResultListQuery() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Select validentity");
         stringBuilder.append(leftJoinDataTables.getFromClause());
         stringBuilder.append(" Where ");
-        stringBuilder.append(leftJoinDataTables.getSearchCondition(queryParameter));
-        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, true));
+        stringBuilder.append(leftJoinDataTables.getSearchCondition());
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, QueryType.RESULT_LIST));
     }
 }

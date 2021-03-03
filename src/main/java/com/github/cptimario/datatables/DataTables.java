@@ -3,6 +3,7 @@ package com.github.cptimario.datatables;
 import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.JoinType;
 import com.github.cptimario.datatables.components.Order;
+import com.github.cptimario.datatables.components.QueryType;
 import org.hibernate.Session;
 
 import javax.persistence.Query;
@@ -11,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DataTables<E> {
+
     private final String entityName;
     private final JoinType joinType;
     private final DataTablesParameter dataTablesParameter;
@@ -48,7 +50,7 @@ public class DataTables<E> {
     @SuppressWarnings("unchecked")
     public List<E> getSearchResultList(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
-        Query query = session.createQuery(getQuery(queryParameter, true));
+        Query query = session.createQuery(getQuery(queryParameter, QueryType.RESULT_LIST));
         for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
         }
@@ -59,9 +61,7 @@ public class DataTables<E> {
 
     public long getRecordsTotalCount(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
-        queryParameter.setSelectClause(getCountQuery(queryParameter));
-        queryParameter.setGroupByFields(Collections.emptySet());
-        Query query = session.createQuery(getQuery(queryParameter, false));
+        Query query = session.createQuery(getQuery(queryParameter, QueryType.TOTAL_COUNT));
         for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
         }
@@ -70,16 +70,14 @@ public class DataTables<E> {
 
     public long getRecordsFilteredCount(QueryParameter queryParameter) {
         Session session = queryParameter.getSession();
-        queryParameter.setSelectClause(getCountQuery(queryParameter));
-        queryParameter.setGroupByFields(Collections.emptySet());
-        Query query = session.createQuery(getQuery(queryParameter, true));
+        Query query = session.createQuery(getQuery(queryParameter, QueryType.FILTERED_COUNT));
         for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
         }
         return (long) query.getSingleResult();
     }
 
-    String getCountQuery(QueryParameter queryParameter) {
+    String getSelectCountClause(QueryParameter queryParameter) {
         StringBuilder stringBuilder = new StringBuilder();
         Set<String> groupByFieldsWithAlias = new HashSet<>();
         Set<String> groupByFields = queryParameter.getGroupByFields();
@@ -97,57 +95,87 @@ public class DataTables<E> {
         return stringBuilder.toString();
     }
 
-    public String getQuery(QueryParameter queryParameter, boolean isSearch) {
+    String getQuery(QueryParameter queryParameter, QueryType queryType) {
         StringBuilder stringBuilder = new StringBuilder();
-        addOrderableColumns(queryParameter);
-        if (queryParameter.getSelectClause().isEmpty()) {
-            queryParameter.setSelectClause(" Select " + aliasMap.get(entityName));
-        }
-        stringBuilder.append(queryParameter.getSelectClause());
+        stringBuilder.append(getSelectClause(queryParameter, queryType));
         stringBuilder.append(getFromClause());
-        stringBuilder.append(getWhereClause(queryParameter, isSearch));
-        stringBuilder.append(getGroupByClause(queryParameter));
-        stringBuilder.append(getHavingClause(queryParameter));
+        stringBuilder.append(getWhereClause(queryParameter, queryType));
+        stringBuilder.append(getGroupByClause(queryParameter, queryType));
         stringBuilder.append(getOrderClause(queryParameter));
         return stringBuilder.toString();
     }
 
-    String getWhereClause(QueryParameter queryParameter, boolean isSearch) {
+    private String getSelectClause(QueryParameter queryParameter, QueryType queryType) {
+        if (!queryType.equals(QueryType.RESULT_LIST))
+            return getSelectCountClause(queryParameter);
+        else if (queryParameter.getSelectClause().isEmpty())
+            return " Select " + aliasMap.get(entityName);
+        else
+            return queryParameter.getSelectClause();
+    }
+
+    String getWhereClause(QueryParameter queryParameter, QueryType queryType) {
+        namedParameterMap = new HashMap<>(queryParameter);
         Set<String> whereConditionsWithAlias = new LinkedHashSet<>();
         Set<String> whereConditions = queryParameter.getWhereConditions();
         for (String condition : whereConditions)
             whereConditionsWithAlias.add(getClauseWithAlias(condition));
-        queryParameter.setWhereConditions(whereConditionsWithAlias);
-        if (isSearch)
-            queryParameter.addWhereCondition(getSearchCondition(queryParameter));
-        return queryParameter.getWhereClause();
+        if (!queryType.equals(QueryType.TOTAL_COUNT)) {
+            String searchCondition = getSearchCondition();
+            if (!"".equals(searchCondition.trim()))
+                whereConditionsWithAlias.add(searchCondition);
+        }
+        if (!whereConditionsWithAlias.isEmpty())
+            return " Where " + String.join(" And ", whereConditionsWithAlias);
+        return "";
     }
 
-    String getGroupByClause(QueryParameter queryParameter) {
+    String getGroupByClause(QueryParameter queryParameter, QueryType queryType) {
+        if (queryType.equals(QueryType.RESULT_LIST))
+            return getGroupByClause(queryParameter) + getHavingClause(queryParameter);
+        return "";
+    }
+
+    private String getGroupByClause(QueryParameter queryParameter) {
         Set<String> groupByFieldsWithAlias = new LinkedHashSet<>();
         Set<String> groupByFields = queryParameter.getGroupByFields();
         for (String condition : groupByFields)
             groupByFieldsWithAlias.add(getClauseWithAlias(condition));
-        queryParameter.setGroupByFields(groupByFieldsWithAlias);
-        return queryParameter.getGroupByClause();
+        if (!groupByFieldsWithAlias.isEmpty())
+            return " Group By " + String.join(", ", groupByFieldsWithAlias);
+        return "";
     }
 
-    String getHavingClause(QueryParameter queryParameter) {
+    private String getHavingClause(QueryParameter queryParameter) {
         Set<String> havingConditionsWithAlias = new LinkedHashSet<>();
         Set<String> havingConditions = queryParameter.getHavingConditions();
         for (String condition : havingConditions)
             havingConditionsWithAlias.add(getClauseWithAlias(condition));
-        queryParameter.setHavingConditions(havingConditionsWithAlias);
-        return queryParameter.getHavingClause();
+        if (!havingConditionsWithAlias.isEmpty())
+            return " Having " + String.join(" And ", havingConditionsWithAlias);
+        return "";
     }
 
     String getOrderClause(QueryParameter queryParameter) {
-        Set<String> orderConditionsWithAlias = new LinkedHashSet<>();
+        Set<String> orderConditionsWithAlias = getOrderableColumnsConditions();
         Set<String> orderConditions = queryParameter.getOrderConditions();
         for (String condition : orderConditions)
             orderConditionsWithAlias.add(getClauseWithAlias(condition));
-        queryParameter.setOrderConditions(orderConditionsWithAlias);
-        return queryParameter.getOrderByClause();
+        if (!orderConditionsWithAlias.isEmpty())
+            return " Order By " + String.join(", ", orderConditionsWithAlias);
+        return "";
+    }
+
+    private Set<String> getOrderableColumnsConditions() {
+        Set<String> orderableColumnsConditions = new LinkedHashSet<>();
+        for (Order order : dataTablesParameter.getOrder()) {
+            int index = order.getColumn();
+            Column column = dataTablesParameter.getColumns().get(index);
+            if (column.isOrderable()) {
+                orderableColumnsConditions.add(getOrderCondition(order));
+            }
+        }
+        return orderableColumnsConditions;
     }
 
     String getClauseWithAlias(String field) {
@@ -164,30 +192,22 @@ public class DataTables<E> {
         return field;
     }
 
-    private void addOrderableColumns(QueryParameter queryParameter) {
-        for (Order order : dataTablesParameter.getOrder()) {
-            int index = order.getColumn();
-            Column column = dataTablesParameter.getColumns().get(index);
-            if (column.isOrderable())
-                queryParameter.addOrderCondition(getOrderQuery(order));
-        }
-    }
-
-    private String getOrderQuery(Order order) {
+    private String getOrderCondition(Order order) {
         int index = order.getColumn();
         Column column = dataTablesParameter.getColumns().get(index);
         String fieldName = getQueryFieldName(column);
-        return fieldName + " " + order.getDir();
+        return getClauseWithAlias(fieldName + " " + order.getDir());
     }
 
-    public String getSearchCondition(QueryParameter queryParameter) {
+    String getSearchCondition() {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> searchQueryList = new ArrayList<>();
-        namedParameterMap = new HashMap<>(queryParameter);
+        if (Objects.isNull(namedParameterMap))
+            namedParameterMap = new HashMap<>();
         for (Column column : dataTablesParameter.getColumns()) {
             String searchString = getSearchString(column);
             if (column.isSearchable() && !"".equals(searchString)) {
-                String fieldName = getQueryFieldName(column);
+                String fieldName = getQueryFieldName(column, true);
                 String namedParameter = "value_" + namedParameterMap.size();
                 String fieldQuery = getFieldQuery(fieldName, namedParameter);
                 searchQueryList.add(fieldQuery);
@@ -207,12 +227,16 @@ public class DataTables<E> {
     }
 
     String getQueryFieldName(Column column) {
-        if (!column.isMultiField())
-            return getSingleFieldColumnQueryFieldName(column);
-        return getMultiFieldColumnQueryFieldName(column);
+        return getQueryFieldName(column, false);
     }
 
-    private String getSingleFieldColumnQueryFieldName(Column column) {
+    String getQueryFieldName(Column column, boolean isFormatted) {
+        if (!column.isMultiField())
+            return getSingleFieldColumnQueryFieldName(column, isFormatted);
+        return getMultiFieldColumnQueryFieldName(column, isFormatted);
+    }
+
+    private String getSingleFieldColumnQueryFieldName(Column column, boolean isFormatted) {
         StringBuilder stringBuilder = new StringBuilder();
         String fieldName = column.getFullFieldName();
         String alias = getColumnAlias(column);
@@ -223,18 +247,18 @@ public class DataTables<E> {
             fieldName = fieldName.substring(startIndex);
         }
         stringBuilder.append(fieldName);
-        if (Objects.nonNull(column.getFormat()))
-            return "Format(" + stringBuilder.toString() + ", '" + column.getFormat() + "')";
+        if (isFormatted && Objects.nonNull(column.getFormat()))
+            return "function('date_format', " + stringBuilder.toString() + ", '" + column.getFormat() + "')";
         return stringBuilder.toString();
     }
 
-    private String getMultiFieldColumnQueryFieldName(Column column) {
+    private String getMultiFieldColumnQueryFieldName(Column column, boolean isFormatted) {
         StringBuilder stringBuilder = new StringBuilder();
         List<Column> subColumnList = column.getSubColumnList();
         int lastSubColumnIndex = subColumnList.size() - 1;
         stringBuilder.append(" CONCAT ( ");
         for (Column subColumn : subColumnList) {
-            String queryFieldName = getSingleFieldColumnQueryFieldName(subColumn);
+            String queryFieldName = getSingleFieldColumnQueryFieldName(subColumn, isFormatted);
             stringBuilder.append(queryFieldName);
             if (subColumnList.indexOf(subColumn) < lastSubColumnIndex)
                 stringBuilder.append(", ' ',");

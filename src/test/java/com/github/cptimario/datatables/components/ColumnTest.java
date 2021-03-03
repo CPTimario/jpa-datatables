@@ -20,16 +20,12 @@ class ColumnTest {
         hasRelationshipColumn = new Column();
         multiFieldColumn = new Column();
 
-        singleFieldColumn.setName("field");
         singleFieldColumn.setData("field");
 
-        nullableColumn.setName("nullableEntityField");
         nullableColumn.setData("entity?.field");
 
-        hasRelationshipColumn.setName("entityField");
         hasRelationshipColumn.setData("entity.field");
 
-        multiFieldColumn.setName("firstFieldSecondField");
         multiFieldColumn.setData("firstField + secondField");
     }
 

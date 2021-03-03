@@ -43,12 +43,12 @@ public class QueryParameter extends HashMap<String, Object> {
         return whereConditions;
     }
 
-    public void setWhereConditions(Set<String> whereConditions) {
+    public void setWhereConditions(LinkedHashSet<String> whereConditions) {
         this.whereConditions = whereConditions;
     }
 
     public void setWhereConditions(List<String> whereConditions) {
-        this.whereConditions = new HashSet<>(whereConditions);
+        this.whereConditions = new LinkedHashSet<>(whereConditions);
     }
 
     public Set<String> getGroupByFields() {
@@ -57,12 +57,12 @@ public class QueryParameter extends HashMap<String, Object> {
         return groupByFields;
     }
 
-    public void setGroupByFields(Set<String> groupByFields) {
+    public void setGroupByFields(LinkedHashSet<String> groupByFields) {
         this.groupByFields = groupByFields;
     }
 
     public void setGroupByFields(List<String> groupByFields) {
-        this.groupByFields = new HashSet<>(groupByFields);
+        this.groupByFields = new LinkedHashSet<>(groupByFields);
     }
 
     public Set<String> getHavingConditions() {
@@ -71,12 +71,12 @@ public class QueryParameter extends HashMap<String, Object> {
         return havingConditions;
     }
 
-    public void setHavingConditions(Set<String> havingConditions) {
+    public void setHavingConditions(LinkedHashSet<String> havingConditions) {
         this.havingConditions = havingConditions;
     }
 
     public void setHavingConditions(List<String> havingConditions) {
-        this.havingConditions = new HashSet<>(havingConditions);
+        this.havingConditions = new LinkedHashSet<>(havingConditions);
     }
 
     public Set<String> getOrderConditions() {
@@ -85,12 +85,12 @@ public class QueryParameter extends HashMap<String, Object> {
         return orderConditions;
     }
 
-    public void setOrderConditions(Set<String> orderConditions) {
+    public void setOrderConditions(LinkedHashSet<String> orderConditions) {
         this.orderConditions = orderConditions;
     }
 
     public void setOrderConditions(List<String> orderConditions) {
-        this.orderConditions = new HashSet<>(orderConditions);
+        this.orderConditions = new LinkedHashSet<>(orderConditions);
     }
 
     public void addWhereCondition(String condition) {
@@ -119,29 +119,5 @@ public class QueryParameter extends HashMap<String, Object> {
             orderConditions = new LinkedHashSet<>();
         if (Objects.nonNull(condition) && !"".equals(condition.trim()))
             orderConditions.add(condition);
-    }
-
-    public String getWhereClause() {
-        if (Objects.nonNull(whereConditions) && !whereConditions.isEmpty())
-            return " Where " + String.join(" And ", whereConditions);
-        return "";
-    }
-
-    public String getGroupByClause() {
-        if (Objects.nonNull(groupByFields) && !groupByFields.isEmpty())
-            return " Group By " + String.join(", ", groupByFields);
-        return "";
-    }
-
-    public String getHavingClause() {
-        if (Objects.nonNull(havingConditions) && !havingConditions.isEmpty())
-            return " Having " + String.join(" And ", havingConditions);
-        return "";
-    }
-
-    public String getOrderByClause() {
-        if (Objects.nonNull(orderConditions) && !orderConditions.isEmpty())
-            return " Order By " + String.join(", ", orderConditions);
-        return "";
     }
 }

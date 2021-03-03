@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 public class Column {
     private String data;
-    private String name;
     private boolean searchable;
     private boolean orderable;
     private Search search;
@@ -16,7 +15,6 @@ public class Column {
 
     public Column() {
         this.data = "";
-        this.name = "";
         this.searchable = true;
         this.search = new Search();
     }
@@ -27,14 +25,6 @@ public class Column {
 
     public void setData(String data) {
         this.data = data;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public boolean isSearchable() {
@@ -153,11 +143,11 @@ public class Column {
         if (!(o instanceof Column))
             return false;
         Column column = (Column) o;
-        return searchable == column.searchable && Objects.equals(data, column.data) && Objects.equals(name, column.name) && Objects.equals(search, column.search);
+        return searchable == column.searchable && Objects.equals(data, column.data) && Objects.equals(search, column.search);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(data, name, searchable, search);
+        return Objects.hash(data, searchable, search);
     }
 }

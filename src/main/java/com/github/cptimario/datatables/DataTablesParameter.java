@@ -72,7 +72,7 @@ public class DataTablesParameter {
         return search.getValue();
     }
 
-    public void setColumnFormat(String format, int... columnIndexes) {
+    public void setDateColumnFormat(String format, int... columnIndexes) {
         List<Column> columnList = getColumns();
         for (int index : columnIndexes) {
             Column column = columnList.get(index);
