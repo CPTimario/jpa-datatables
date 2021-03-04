@@ -16,8 +16,7 @@ public class DataTables<E> {
     private final String entityName;
     private final JoinType joinType;
     private final DataTablesParameter dataTablesParameter;
-    private final HashMap<String, String> aliasMap;
-    private HashMap<String, Object> namedParameterMap;
+    private final Map<String, String> aliasMap;
 
     public static <E> DataTables<E> of(Class<E> entity, DataTablesParameter dataTablesParameter) {
         return new DataTables<>(entity, dataTablesParameter, JoinType.CROSS_JOIN);
@@ -49,9 +48,10 @@ public class DataTables<E> {
 
     @SuppressWarnings("unchecked")
     public List<E> getSearchResultList(QueryParameter queryParameter) {
+        QueryParameter resultListParameter = queryParameter.clone();
         Session session = queryParameter.getSession();
-        Query query = session.createQuery(getQuery(queryParameter, QueryType.RESULT_LIST));
-        for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
+        Query query = session.createQuery(getQuery(resultListParameter, QueryType.RESULT_LIST));
+        for (Map.Entry<String, Object> parameter : resultListParameter.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
         }
         query.setFirstResult(dataTablesParameter.getStart());
@@ -60,18 +60,20 @@ public class DataTables<E> {
     }
 
     public long getRecordsTotalCount(QueryParameter queryParameter) {
+        QueryParameter totalCountParameter = queryParameter.clone();
         Session session = queryParameter.getSession();
-        Query query = session.createQuery(getQuery(queryParameter, QueryType.TOTAL_COUNT));
-        for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
+        Query query = session.createQuery(getQuery(totalCountParameter, QueryType.TOTAL_COUNT));
+        for (Map.Entry<String, Object> parameter : totalCountParameter.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
         }
         return (long) query.getSingleResult();
     }
 
     public long getRecordsFilteredCount(QueryParameter queryParameter) {
+        QueryParameter filteredCountParameter = queryParameter.clone();
         Session session = queryParameter.getSession();
-        Query query = session.createQuery(getQuery(queryParameter, QueryType.FILTERED_COUNT));
-        for (Map.Entry<String, Object> parameter : namedParameterMap.entrySet()) {
+        Query query = session.createQuery(getQuery(filteredCountParameter, QueryType.FILTERED_COUNT));
+        for (Map.Entry<String, Object> parameter : filteredCountParameter.entrySet()) {
             query.setParameter(parameter.getKey(), parameter.getValue());
         }
         return (long) query.getSingleResult();
@@ -114,20 +116,59 @@ public class DataTables<E> {
             return queryParameter.getSelectClause();
     }
 
+    String getFromClause() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(" From ");
+        stringBuilder.append(entityName);
+        stringBuilder.append(" ");
+        stringBuilder.append(aliasMap.get(entityName));
+        if (joinType.equals(JoinType.LEFT_JOIN)) {
+            stringBuilder.append(getLeftJoinClause(dataTablesParameter.getColumns()));
+        }
+        return stringBuilder.toString();
+    }
+
+    String getLeftJoinClause(List<Column> columnList) {
+        Set<String> leftJoinSet = new LinkedHashSet<>();
+        for (Column column : columnList) {
+            if (column.isMultiField()) {
+                for (Column subColumn : column.getSubColumnList()) {
+                    addLeftJoinClause(leftJoinSet, subColumn);
+                }
+            } else {
+                addLeftJoinClause(leftJoinSet, column);
+            }
+        }
+        return String.join(" ", leftJoinSet);
+    }
+
+    private void addLeftJoinClause(Set<String> leftJoinSet, Column column) {
+        if (column.hasRelationship()) {
+            String fieldName = column.getRelationshipFieldName();
+            registerAlias(fieldName);
+            String leftTableAlias = aliasMap.get(entityName);
+            String rightTableAlias = aliasMap.get(fieldName);
+            String leftJoinClause = column.getLeftJoinClause(leftTableAlias, rightTableAlias);
+            leftJoinSet.add(leftJoinClause);
+        }
+    }
+
     String getWhereClause(QueryParameter queryParameter, QueryType queryType) {
-        namedParameterMap = new HashMap<>(queryParameter);
         Set<String> whereConditionsWithAlias = new LinkedHashSet<>();
         Set<String> whereConditions = queryParameter.getWhereConditions();
+        if (!queryType.equals(QueryType.TOTAL_COUNT))
+            addSearchCondition(whereConditionsWithAlias, queryParameter);
         for (String condition : whereConditions)
             whereConditionsWithAlias.add(getClauseWithAlias(condition));
-        if (!queryType.equals(QueryType.TOTAL_COUNT)) {
-            String searchCondition = getSearchCondition();
-            if (!"".equals(searchCondition.trim()))
-                whereConditionsWithAlias.add(searchCondition);
-        }
         if (!whereConditionsWithAlias.isEmpty())
             return " Where " + String.join(" And ", whereConditionsWithAlias);
         return "";
+    }
+
+    private void addSearchCondition(Set<String> whereConditions, QueryParameter queryParameter) {
+        String searchCondition = getSearchCondition(queryParameter);
+        if (!"".equals(searchCondition))
+            whereConditions.add(searchCondition);
     }
 
     String getGroupByClause(QueryParameter queryParameter, QueryType queryType) {
@@ -199,19 +240,17 @@ public class DataTables<E> {
         return getClauseWithAlias(fieldName + " " + order.getDir());
     }
 
-    String getSearchCondition() {
+    String getSearchCondition(QueryParameter queryParameter) {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> searchQueryList = new ArrayList<>();
-        if (Objects.isNull(namedParameterMap))
-            namedParameterMap = new HashMap<>();
         for (Column column : dataTablesParameter.getColumns()) {
             String searchString = getSearchString(column);
             if (column.isSearchable() && !"".equals(searchString)) {
                 String fieldName = getQueryFieldName(column, true);
-                String namedParameter = "value_" + namedParameterMap.size();
+                String namedParameter = "value_" + queryParameter.size();
                 String fieldQuery = getFieldQuery(fieldName, namedParameter);
                 searchQueryList.add(fieldQuery);
-                namedParameterMap.put(namedParameter, searchString);
+                queryParameter.put(namedParameter, searchString);
             }
         }
         if (!searchQueryList.isEmpty()) {
@@ -280,46 +319,8 @@ public class DataTables<E> {
         return aliasMap.get(entityName);
     }
 
-    String getFromClause() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(" From ");
-        stringBuilder.append(entityName);
-        stringBuilder.append(" ");
-        stringBuilder.append(aliasMap.get(entityName));
-        if (joinType.equals(JoinType.LEFT_JOIN)) {
-            stringBuilder.append(getLeftJoinClause(dataTablesParameter.getColumns()));
-        }
-        return stringBuilder.toString();
-    }
-
-    String getLeftJoinClause(List<Column> columnList) {
-        Set<String> leftJoinSet = new LinkedHashSet<>();
-        for (Column column : columnList) {
-            if (column.isMultiField()) {
-                for (Column subColumn : column.getSubColumnList()) {
-                    addLeftJoinClause(leftJoinSet, subColumn);
-                }
-            } else {
-                addLeftJoinClause(leftJoinSet, column);
-            }
-        }
-        return String.join(" ", leftJoinSet);
-    }
-
-    private void addLeftJoinClause(Set<String> leftJoinSet, Column column) {
-        if (column.hasRelationship()) {
-            String leftJoinClause, leftTableAlias, rightTableAlias;
-            String fieldName = column.getRelationshipFieldName();
-            registerAlias(fieldName);
-            leftTableAlias = aliasMap.get(entityName);
-            rightTableAlias = aliasMap.get(fieldName);
-            leftJoinClause = column.getLeftJoinClause(leftTableAlias, rightTableAlias);
-            leftJoinSet.add(leftJoinClause);
-        }
-    }
-
     private void registerAliasMap() {
-        aliasMap.put(entityName, entityName.toLowerCase());
+        aliasMap.put(entityName, getCamelCase(entityName));
         for (Column column : dataTablesParameter.getColumns()) {
             registerAlias(column);
         }
@@ -336,11 +337,26 @@ public class DataTables<E> {
     }
 
     private void registerAlias(String fieldName) {
-        int currentAliasCount = aliasMap.size();
-        int aliasSuffix = Objects.isNull(aliasMap.get(fieldName)) ? currentAliasCount : ++currentAliasCount;
-        String aliasPrefix = fieldName.length() > 5 ? fieldName.substring(0, 5) : fieldName;
-        String alias = aliasPrefix.toLowerCase() + "_" + aliasSuffix;
-        if (Objects.isNull(aliasMap.get(fieldName)))
-            aliasMap.put(fieldName, alias);
+        if (Objects.isNull(aliasMap.get(fieldName))) {
+            StringBuilder stringBuilder = new StringBuilder();
+            String[] relationshipFieldNames = fieldName.split("\\.");
+            for (String field : relationshipFieldNames) {
+                stringBuilder.append(getAliasPrefix(field));
+                stringBuilder.append("_");
+            }
+            stringBuilder.append(aliasMap.size());
+            aliasMap.put(fieldName, stringBuilder.toString());
+        }
+    }
+
+    private String getCamelCase(String text) {
+        if (Objects.nonNull(text) && !"".equals(text.trim()))
+            return Character.toLowerCase(text.charAt(0)) + text.substring(1);
+        return "";
+    }
+
+    private String getAliasPrefix(String field) {
+        String prefix = field.length() > 5 ? field.substring(0, 5) : field;
+        return getCamelCase(prefix);
     }
 }

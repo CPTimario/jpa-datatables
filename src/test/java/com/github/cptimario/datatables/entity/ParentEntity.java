@@ -3,15 +3,15 @@ package com.github.cptimario.datatables.entity;
 import javax.persistence.*;
 
 @Entity
-public class ValidEntity {
+public class ParentEntity {
     @Id
     Integer id;
 
     String data;
 
     @ManyToOne
-    SubEntity firstSubEntity;
+    ChildEntity firstChildEntity;
 
     @ManyToOne
-    SubEntity secondSubEntity;
+    ChildEntity secondChildEntity;
 }

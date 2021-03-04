@@ -4,7 +4,7 @@ import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.JoinType;
 import com.github.cptimario.datatables.components.QueryType;
 import com.github.cptimario.datatables.components.Search;
-import com.github.cptimario.datatables.entity.ValidEntity;
+import com.github.cptimario.datatables.entity.ParentEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,26 +21,24 @@ class DataTablesTest {
     private Column firstSubEntityDate;
     private List<Column> columnList;
     private StringBuilder stringBuilder;
-    private QueryParameter queryParameter;
     private DataTablesParameter crossJoinParameter;
     private DataTablesParameter leftJoinParameter;
-    private DataTables<ValidEntity> leftJoinDataTables;
-    private DataTables<ValidEntity> crossJoinDataTables;
+    private DataTables<ParentEntity> leftJoinDataTables;
+    private DataTables<ParentEntity> crossJoinDataTables;
 
     @BeforeEach
     void setup() {
         columnList = getColumnList();
-        queryParameter = new QueryParameter();
 
         crossJoinParameter = new DataTablesParameter();
         crossJoinParameter.setColumns(columnList);
         crossJoinParameter.setSearch(new Search("123"));
-        crossJoinDataTables = DataTables.of(ValidEntity.class, crossJoinParameter);
+        crossJoinDataTables = DataTables.of(ParentEntity.class, crossJoinParameter);
 
         leftJoinParameter = new DataTablesParameter();
         leftJoinParameter.setColumns(columnList);
         leftJoinParameter.setSearch(new Search("123"));
-        leftJoinDataTables = DataTables.of(ValidEntity.class, leftJoinParameter, JoinType.LEFT_JOIN);
+        leftJoinDataTables = DataTables.of(ParentEntity.class, leftJoinParameter, JoinType.LEFT_JOIN);
     }
 
     private List<Column> getColumnList() {
@@ -76,11 +74,11 @@ class DataTablesTest {
         Column firstSubColumn = secondSubEntity.getSubColumnList().get(0);
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Left Join ");
-        stringBuilder.append("validentity.");
+        stringBuilder.append("parentEntity.");
         stringBuilder.append(firstSubEntity.getRelationshipFieldName());
         stringBuilder.append(" first_1 ");
         stringBuilder.append(" Left Join ");
-        stringBuilder.append("validentity.");
+        stringBuilder.append("parentEntity.");
         stringBuilder.append(firstSubColumn.getRelationshipFieldName());
         stringBuilder.append(" secon_2");
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getLeftJoinClause(columnList));
@@ -90,8 +88,8 @@ class DataTablesTest {
     void getFromClauseTestDefault() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" From ");
-        stringBuilder.append("ValidEntity");
-        stringBuilder.append(" validentity");
+        stringBuilder.append("ParentEntity");
+        stringBuilder.append(" parentEntity");
         assertEquals(stringBuilder.toString(), crossJoinDataTables.getFromClause());
     }
 
@@ -99,8 +97,8 @@ class DataTablesTest {
     void getFromClauseTestCrossJoin() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" From ");
-        stringBuilder.append("ValidEntity");
-        stringBuilder.append(" validentity");
+        stringBuilder.append("ParentEntity");
+        stringBuilder.append(" parentEntity");
         assertEquals(stringBuilder.toString(), crossJoinDataTables.getFromClause());
     }
 
@@ -109,14 +107,14 @@ class DataTablesTest {
         Column firstSubColumn = secondSubEntity.getSubColumnList().get(0);
         stringBuilder = new StringBuilder();
         stringBuilder.append(" From ");
-        stringBuilder.append("ValidEntity");
-        stringBuilder.append(" validentity");
+        stringBuilder.append("ParentEntity");
+        stringBuilder.append(" parentEntity");
         stringBuilder.append(" Left Join ");
-        stringBuilder.append("validentity.");
+        stringBuilder.append("parentEntity.");
         stringBuilder.append(firstSubEntity.getRelationshipFieldName());
         stringBuilder.append(" first_1 ");
         stringBuilder.append(" Left Join ");
-        stringBuilder.append("validentity.");
+        stringBuilder.append("parentEntity.");
         stringBuilder.append(firstSubColumn.getRelationshipFieldName());
         stringBuilder.append(" secon_2");
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getFromClause());
@@ -134,14 +132,14 @@ class DataTablesTest {
 
     @Test
     void getColumnAliasTest() {
-        assertEquals("validentity", crossJoinDataTables.getColumnAlias(id));
-        assertEquals("validentity", crossJoinDataTables.getColumnAlias(data));
-        assertEquals("validentity", crossJoinDataTables.getColumnAlias(firstSubEntity));
-        assertEquals("validentity", crossJoinDataTables.getColumnAlias(secondSubEntity));
-        assertEquals("validentity", crossJoinDataTables.getColumnAlias(firstSubEntityDate));
+        assertEquals("parentEntity", crossJoinDataTables.getColumnAlias(id));
+        assertEquals("parentEntity", crossJoinDataTables.getColumnAlias(data));
+        assertEquals("parentEntity", crossJoinDataTables.getColumnAlias(firstSubEntity));
+        assertEquals("parentEntity", crossJoinDataTables.getColumnAlias(secondSubEntity));
+        assertEquals("parentEntity", crossJoinDataTables.getColumnAlias(firstSubEntityDate));
 
-        assertEquals("validentity", leftJoinDataTables.getColumnAlias(id));
-        assertEquals("validentity", leftJoinDataTables.getColumnAlias(data));
+        assertEquals("parentEntity", leftJoinDataTables.getColumnAlias(id));
+        assertEquals("parentEntity", leftJoinDataTables.getColumnAlias(data));
         assertEquals("first_1", leftJoinDataTables.getColumnAlias(firstSubEntity));
         assertEquals("first_1", leftJoinDataTables.getColumnAlias(firstSubEntityDate));
         assertThrows(IllegalCallerException.class, () -> leftJoinDataTables.getColumnAlias(secondSubEntity));
@@ -151,13 +149,13 @@ class DataTablesTest {
     void getQueryFieldNameTestCrossJoin() {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" CONCAT ( ");
-        stringBuilder.append("validentity.secondSubEntity.firstData, ' ',");
-        stringBuilder.append("validentity.secondSubEntity.secondData ) ");
-        assertEquals("validentity.id", crossJoinDataTables.getQueryFieldName(id));
-        assertEquals("validentity.data", crossJoinDataTables.getQueryFieldName(data));
-        assertEquals("validentity.firstSubEntity.firstData", crossJoinDataTables.getQueryFieldName(firstSubEntity));
+        stringBuilder.append("parentEntity.secondSubEntity.firstData, ' ',");
+        stringBuilder.append("parentEntity.secondSubEntity.secondData ) ");
+        assertEquals("parentEntity.id", crossJoinDataTables.getQueryFieldName(id));
+        assertEquals("parentEntity.data", crossJoinDataTables.getQueryFieldName(data));
+        assertEquals("parentEntity.firstSubEntity.firstData", crossJoinDataTables.getQueryFieldName(firstSubEntity));
         assertEquals(stringBuilder.toString(), crossJoinDataTables.getQueryFieldName(secondSubEntity));
-        assertEquals("validentity.firstSubEntity.date", crossJoinDataTables.getQueryFieldName(firstSubEntityDate));
+        assertEquals("parentEntity.firstSubEntity.date", crossJoinDataTables.getQueryFieldName(firstSubEntityDate));
     }
 
     @Test
@@ -166,8 +164,8 @@ class DataTablesTest {
         stringBuilder.append(" CONCAT ( ");
         stringBuilder.append("secon_2.firstData, ' ',");
         stringBuilder.append("secon_2.secondData ) ");
-        assertEquals("validentity.id", leftJoinDataTables.getQueryFieldName(id));
-        assertEquals("validentity.data", leftJoinDataTables.getQueryFieldName(data));
+        assertEquals("parentEntity.id", leftJoinDataTables.getQueryFieldName(id));
+        assertEquals("parentEntity.data", leftJoinDataTables.getQueryFieldName(data));
         assertEquals("first_1.firstData", leftJoinDataTables.getQueryFieldName(firstSubEntity));
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getQueryFieldName(secondSubEntity));
         assertEquals("first_1.date", leftJoinDataTables.getQueryFieldName(firstSubEntityDate));
@@ -181,8 +179,8 @@ class DataTablesTest {
         stringBuilder.append("secon_2.firstData, ' ',");
         stringBuilder.append("secon_2.secondData ) ");
         leftJoinParameter.setDateColumnFormat("%Y/%m/%d", 4);
-        assertEquals("validentity.id", leftJoinDataTables.getQueryFieldName(id));
-        assertEquals("validentity.data", leftJoinDataTables.getQueryFieldName(data));
+        assertEquals("parentEntity.id", leftJoinDataTables.getQueryFieldName(id));
+        assertEquals("parentEntity.data", leftJoinDataTables.getQueryFieldName(data));
         assertEquals("first_1.firstData", leftJoinDataTables.getQueryFieldName(firstSubEntity));
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getQueryFieldName(secondSubEntity));
         assertEquals(formattedFieldName, leftJoinDataTables.getQueryFieldName(firstSubEntityDate, true));
@@ -190,7 +188,7 @@ class DataTablesTest {
 
     @Test
     void getFieldQueryTest() {
-        String fieldName = "validentity.id";
+        String fieldName = "parentEntity.id";
         String namedParameter = "id_0";
         stringBuilder = new StringBuilder();
         stringBuilder.append(fieldName);
@@ -205,15 +203,15 @@ class DataTablesTest {
         List<String> searchConditionList = new ArrayList<>();
         stringBuilder = new StringBuilder();
         stringBuilder.append(" CONCAT ( ");
-        stringBuilder.append("validentity.secondSubEntity.firstData, ' ',");
-        stringBuilder.append("validentity.secondSubEntity.secondData ) ");
-        searchConditionList.add(crossJoinDataTables.getFieldQuery("validentity.id", "value_0"));
-        searchConditionList.add(crossJoinDataTables.getFieldQuery("validentity.data", "value_1"));
-        searchConditionList.add(crossJoinDataTables.getFieldQuery("validentity.firstSubEntity.firstData", "value_2"));
+        stringBuilder.append("parentEntity.secondSubEntity.firstData, ' ',");
+        stringBuilder.append("parentEntity.secondSubEntity.secondData ) ");
+        searchConditionList.add(crossJoinDataTables.getFieldQuery("parentEntity.id", "value_0"));
+        searchConditionList.add(crossJoinDataTables.getFieldQuery("parentEntity.data", "value_1"));
+        searchConditionList.add(crossJoinDataTables.getFieldQuery("parentEntity.firstSubEntity.firstData", "value_2"));
         searchConditionList.add(crossJoinDataTables.getFieldQuery(stringBuilder.toString(), "value_3"));
-        searchConditionList.add(crossJoinDataTables.getFieldQuery("validentity.firstSubEntity.date", "value_4"));
+        searchConditionList.add(crossJoinDataTables.getFieldQuery("parentEntity.firstSubEntity.date", "value_4"));
         String searchCondition = " ( " + String.join(" Or ", searchConditionList) + " ) ";
-        assertEquals(searchCondition, crossJoinDataTables.getSearchCondition());
+        assertEquals(searchCondition, crossJoinDataTables.getSearchCondition(new QueryParameter()));
     }
 
     @Test
@@ -223,13 +221,13 @@ class DataTablesTest {
         stringBuilder.append(" CONCAT ( ");
         stringBuilder.append("secon_2.firstData, ' ',");
         stringBuilder.append("secon_2.secondData ) ");
-        searchConditionList.add(leftJoinDataTables.getFieldQuery("validentity.id", "value_0"));
-        searchConditionList.add(leftJoinDataTables.getFieldQuery("validentity.data", "value_1"));
+        searchConditionList.add(leftJoinDataTables.getFieldQuery("parentEntity.id", "value_0"));
+        searchConditionList.add(leftJoinDataTables.getFieldQuery("parentEntity.data", "value_1"));
         searchConditionList.add(leftJoinDataTables.getFieldQuery("first_1.firstData", "value_2"));
         searchConditionList.add(leftJoinDataTables.getFieldQuery(stringBuilder.toString(), "value_3"));
         searchConditionList.add(leftJoinDataTables.getFieldQuery("first_1.date", "value_4"));
         String searchCondition = " ( " + String.join(" Or ", searchConditionList) + " ) ";
-        assertEquals(searchCondition, leftJoinDataTables.getSearchCondition());
+        assertEquals(searchCondition, leftJoinDataTables.getSearchCondition(new QueryParameter()));
     }
 
     @Test
@@ -237,7 +235,7 @@ class DataTablesTest {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Select Count(*) ");
         stringBuilder.append(crossJoinDataTables.getFromClause());
-        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, QueryType.TOTAL_COUNT));
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(new QueryParameter(), QueryType.TOTAL_COUNT));
     }
 
     @Test
@@ -246,18 +244,18 @@ class DataTablesTest {
         stringBuilder.append(" Select Count(*) ");
         stringBuilder.append(crossJoinDataTables.getFromClause());
         stringBuilder.append(" Where ");
-        stringBuilder.append(crossJoinDataTables.getSearchCondition());
-        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, QueryType.FILTERED_COUNT));
+        stringBuilder.append(crossJoinDataTables.getSearchCondition(new QueryParameter()));
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(new QueryParameter(), QueryType.FILTERED_COUNT));
     }
 
     @Test
     void getQueryTestCrossJoinResultListQuery() {
         stringBuilder = new StringBuilder();
-        stringBuilder.append(" Select validentity");
+        stringBuilder.append(" Select parentEntity");
         stringBuilder.append(crossJoinDataTables.getFromClause());
         stringBuilder.append(" Where ");
-        stringBuilder.append(crossJoinDataTables.getSearchCondition());
-        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(queryParameter, QueryType.RESULT_LIST));
+        stringBuilder.append(crossJoinDataTables.getSearchCondition(new QueryParameter()));
+        assertEquals(stringBuilder.toString(), crossJoinDataTables.getQuery(new QueryParameter(), QueryType.RESULT_LIST));
     }
 
     @Test
@@ -265,7 +263,7 @@ class DataTablesTest {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Select Count(*) ");
         stringBuilder.append(leftJoinDataTables.getFromClause());
-        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, QueryType.TOTAL_COUNT));
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(new QueryParameter(), QueryType.TOTAL_COUNT));
     }
 
     @Test
@@ -274,17 +272,17 @@ class DataTablesTest {
         stringBuilder.append(" Select Count(*) ");
         stringBuilder.append(leftJoinDataTables.getFromClause());
         stringBuilder.append(" Where ");
-        stringBuilder.append(leftJoinDataTables.getSearchCondition());
-        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, QueryType.FILTERED_COUNT));
+        stringBuilder.append(leftJoinDataTables.getSearchCondition(new QueryParameter()));
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(new QueryParameter(), QueryType.FILTERED_COUNT));
     }
 
     @Test
     void getQueryTestLeftJoinResultListQuery() {
         stringBuilder = new StringBuilder();
-        stringBuilder.append(" Select validentity");
+        stringBuilder.append(" Select parentEntity");
         stringBuilder.append(leftJoinDataTables.getFromClause());
         stringBuilder.append(" Where ");
-        stringBuilder.append(leftJoinDataTables.getSearchCondition());
-        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(queryParameter, QueryType.RESULT_LIST));
+        stringBuilder.append(leftJoinDataTables.getSearchCondition(new QueryParameter()));
+        assertEquals(stringBuilder.toString(), leftJoinDataTables.getQuery(new QueryParameter(), QueryType.RESULT_LIST));
     }
 }
