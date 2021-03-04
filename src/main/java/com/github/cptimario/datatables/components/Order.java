@@ -18,7 +18,7 @@ public class Order {
 
     public void setDir(String dir) {
         if (!"asc".equalsIgnoreCase(dir) && !"desc".equalsIgnoreCase(dir))
-            throw new IllegalArgumentException(dir + " not a valid direction.");
+            throw new IllegalArgumentException("'" + dir + "' not a valid direction.");
         this.dir = dir;
     }
 }

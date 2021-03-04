@@ -144,11 +144,11 @@ public class DataTables<E> {
 
     private void addLeftJoinClause(Set<String> leftJoinSet, Column column) {
         if (column.hasRelationship()) {
-            String fieldName = column.getRelationshipFieldName();
+            String fieldName = column.getEntityField();
             registerAlias(fieldName);
-            String leftTableAlias = aliasMap.get(entityName);
-            String rightTableAlias = aliasMap.get(fieldName);
-            String leftJoinClause = column.getLeftJoinClause(leftTableAlias, rightTableAlias);
+            String mainEntityAlias = aliasMap.get(entityName);
+            String entityFieldAlias = aliasMap.get(fieldName);
+            String leftJoinClause = column.getLeftJoinClause(mainEntityAlias, entityFieldAlias);
             leftJoinSet.add(leftJoinClause);
         }
     }
@@ -277,7 +277,7 @@ public class DataTables<E> {
 
     private String getSingleFieldColumnQueryFieldName(Column column, boolean isFormatted) {
         StringBuilder stringBuilder = new StringBuilder();
-        String fieldName = column.getFullFieldName();
+        String fieldName = column.getField();
         String alias = getColumnAlias(column);
         stringBuilder.append(alias);
         stringBuilder.append(".");
@@ -315,7 +315,7 @@ public class DataTables<E> {
     String getColumnAlias(Column column) {
         boolean isLeftJoin = joinType.equals(JoinType.LEFT_JOIN);
         if (isLeftJoin && column.hasRelationship())
-            return aliasMap.get(column.getRelationshipFieldName());
+            return aliasMap.get(column.getEntityField());
         return aliasMap.get(entityName);
     }
 
@@ -332,7 +332,7 @@ public class DataTables<E> {
                 registerAlias(subColumn);
             }
         } else if (column.hasRelationship() && joinType.equals(JoinType.LEFT_JOIN)) {
-            registerAlias(column.getRelationshipFieldName());
+            registerAlias(column.getEntityField());
         }
     }
 

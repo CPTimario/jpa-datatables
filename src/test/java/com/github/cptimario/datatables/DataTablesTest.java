@@ -75,11 +75,11 @@ class DataTablesTest {
         stringBuilder = new StringBuilder();
         stringBuilder.append(" Left Join ");
         stringBuilder.append("parentEntity.");
-        stringBuilder.append(firstSubEntity.getRelationshipFieldName());
+        stringBuilder.append(firstSubEntity.getEntityField());
         stringBuilder.append(" first_1 ");
         stringBuilder.append(" Left Join ");
         stringBuilder.append("parentEntity.");
-        stringBuilder.append(firstSubColumn.getRelationshipFieldName());
+        stringBuilder.append(firstSubColumn.getEntityField());
         stringBuilder.append(" secon_2");
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getLeftJoinClause(columnList));
     }
@@ -111,11 +111,11 @@ class DataTablesTest {
         stringBuilder.append(" parentEntity");
         stringBuilder.append(" Left Join ");
         stringBuilder.append("parentEntity.");
-        stringBuilder.append(firstSubEntity.getRelationshipFieldName());
+        stringBuilder.append(firstSubEntity.getEntityField());
         stringBuilder.append(" first_1 ");
         stringBuilder.append(" Left Join ");
         stringBuilder.append("parentEntity.");
-        stringBuilder.append(firstSubColumn.getRelationshipFieldName());
+        stringBuilder.append(firstSubColumn.getEntityField());
         stringBuilder.append(" secon_2");
         assertEquals(stringBuilder.toString(), leftJoinDataTables.getFromClause());
     }

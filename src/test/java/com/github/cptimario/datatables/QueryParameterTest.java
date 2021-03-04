@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class QueryParameterTest {
     private QueryParameter queryParameter;
@@ -134,5 +134,11 @@ public class QueryParameterTest {
         emptyQueryParameter.addOrderCondition(additionalCondition);
         assertIterableEquals(orderConditions, queryParameter.getOrderConditions());
         assertIterableEquals(List.of(additionalCondition), emptyQueryParameter.getOrderConditions());
+    }
+
+    @Test
+    void cloneTest() {
+        assertEquals(queryParameter, queryParameter.clone());
+        assertNotSame(queryParameter, queryParameter.clone());
     }
 }

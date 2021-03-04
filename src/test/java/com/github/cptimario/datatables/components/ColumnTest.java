@@ -38,6 +38,13 @@ class ColumnTest {
     }
 
     @Test
+    void isNullableTestMultiFieldInvalidCall() {
+        String message = "Column '" + multiFieldColumn.getField() + "' is a multi-field column.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> multiFieldColumn.isNullable());
+        assertEquals(exception.getMessage(), message);
+    }
+
+    @Test
     void isNullableTest() {
         assertTrue(nullableColumn.isNullable());
         assertFalse(singleFieldColumn.isNullable());
@@ -45,54 +52,55 @@ class ColumnTest {
     }
 
     @Test
-    void hasRelationship() {
+    void hasRelationshipTestMultiFieldInvalidCall() {
+        String message = "Column '" + multiFieldColumn.getField() + "' is a multi-field column.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> multiFieldColumn.hasRelationship());
+        assertEquals(exception.getMessage(), message);
+    }
+
+    @Test
+    void hasRelationshipTest() {
         assertTrue(hasRelationshipColumn.hasRelationship());
         assertTrue(nullableColumn.hasRelationship());
         assertFalse(singleFieldColumn.hasRelationship());
     }
 
     @Test
-    void getFullFieldNameTest() {
-        assertEquals("field", singleFieldColumn.getFullFieldName());
-        assertEquals("entity.field", nullableColumn.getFullFieldName());
-        assertEquals("entity.field", hasRelationshipColumn.getFullFieldName());
-        assertEquals("firstField secondField", multiFieldColumn.getFullFieldName());
+    void getFieldTest() {
+        assertEquals("field", singleFieldColumn.getField());
+        assertEquals("entity.field", nullableColumn.getField());
+        assertEquals("entity.field", hasRelationshipColumn.getField());
+        assertEquals("firstField secondField", multiFieldColumn.getField());
     }
 
     @Test
-    void getFullFieldNameListTestNotMultiFieldInvalidCall() {
-        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' is not a multi-field column.";
-        Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getFullFieldNameList());
+    void getFieldListTest() {
+        assertIterableEquals(List.of("firstField", "secondField"), multiFieldColumn.getFieldList());
+    }
+
+    @Test
+    void getEntityFieldTestMultiFieldInvalidCall() {
+        String message = "Column '" + multiFieldColumn.getField() + "' is a multi-field column.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> multiFieldColumn.getEntityField());
         assertEquals(exception.getMessage(), message);
     }
 
     @Test
-    void getFullFieldNameListTest() {
-        assertIterableEquals(List.of("firstField", "secondField"), multiFieldColumn.getFullFieldNameList());
-    }
-
-    @Test
-    void getRelationshipFieldNameTestMultiFieldInvalidCall() {
-        String message = "Column '" + multiFieldColumn.getFullFieldName() + "' is a multi-field column.";
-        Throwable exception = assertThrows(IllegalCallerException.class, () -> multiFieldColumn.getRelationshipFieldName());
+    void getEntityFieldTestNoRelationshipInvalidCall() {
+        String message = "Column '" + singleFieldColumn.getField() + "' has no relationship.";
+        Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getEntityField());
         assertEquals(exception.getMessage(), message);
     }
 
     @Test
-    void getRelationshipFieldNameTestNoRelationshipInvalidCall() {
-        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' has no relationship.";
-        Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getRelationshipFieldName());
-        assertEquals(exception.getMessage(), message);
-    }
-
-    @Test
-    void getRelationshipFieldNameTest() {
-        assertEquals("entity", hasRelationshipColumn.getRelationshipFieldName());
+    void getEntityFieldTest() {
+        assertEquals("entity", hasRelationshipColumn.getEntityField());
+        assertEquals("entity", nullableColumn.getEntityField());
     }
 
     @Test
     void getSubColumnListTestNotMultiFieldInvalidCall() {
-        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' is not a multi-field column.";
+        String message = "Column '" + singleFieldColumn.getField() + "' is not a multi-field column.";
         Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getSubColumnList());
         assertEquals(exception.getMessage(), message);
     }
@@ -115,14 +123,14 @@ class ColumnTest {
 
     @Test
     void getLeftJoinClauseTestMultiFieldInvalidCall() {
-        String message = "Column '" + singleFieldColumn.getFullFieldName() + "' is not a multi-field column.";
+        String message = "Column '" + singleFieldColumn.getField() + "' is not a multi-field column.";
         Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getSubColumnList());
         assertEquals(exception.getMessage(), message);
     }
 
     @Test
     void getLeftJoinClauseTest() {
-        String joinClause = " Left Join left." + hasRelationshipColumn.getRelationshipFieldName() + " right";
-        assertEquals(joinClause, hasRelationshipColumn.getLeftJoinClause("left", "right"));
+        String joinClause = " Left Join parent." + hasRelationshipColumn.getEntityField() + " child";
+        assertEquals(joinClause, hasRelationshipColumn.getLeftJoinClause("parent", "child"));
     }
 }

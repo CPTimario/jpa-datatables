@@ -16,6 +16,7 @@ public class Column {
     public Column() {
         this.data = "";
         this.searchable = true;
+        this.orderable = true;
         this.search = new Search();
     }
 
@@ -63,77 +64,134 @@ public class Column {
         this.format = format;
     }
 
+    /**
+     * Checks whether {@code this} column contains multiple fields.
+     * DataTables columns can be composed of multiple entity fields.
+     *
+     * @return {@code true} if a multi-field column, otherwise {@code false}.
+     */
     public boolean isMultiField() {
-        return Objects.nonNull(data) && data.contains("+");
+        String regex = "\\w+\\??(?:\\.\\w+\\??)*(?:[^\\.\\d\\w]+\\w+\\??(?:\\.\\w+\\??)*)+";
+        Matcher multiField = getMatcher(regex, data);
+        return Objects.nonNull(data) && multiField.matches();
     }
 
+    /**
+     * Checks whether the field on {@code this} column contains a relationship to another entity.
+     *
+     * @return {@code true} if field has relationship, otherwise {@code false}.
+     * @throws IllegalCallerException if {@code this} column is multi-field.
+     */
     public boolean hasRelationship() {
-        return Objects.nonNull(data) && data.contains(".");
+        if (isMultiField())
+            throw new IllegalCallerException("Column '" + getField() + "' is a multi-field column.");
+        String regex = "\\w+\\??(?:\\.\\w+\\??)+";
+        Matcher relationship = getMatcher(regex, data);
+        return Objects.nonNull(data) && relationship.matches();
     }
 
+    /**
+     * Checks whether the field on {@code this} column is nullable.
+     *
+     * @return {@code true} if field is nullable, otherwise {@code false}.
+     * @throws IllegalCallerException if {@code this} column is multi-field.
+     */
     public boolean isNullable() {
-        return Objects.nonNull(data) && data.contains("?");
-    }
-
-    public String getFullFieldName() {
         if (isMultiField())
-            return String.join(" ", getFullFieldNameList());
-        return String.join(".", getFieldNameList());
+            throw new IllegalCallerException("Column '" + getField() + "' is a multi-field column.");
+        String regex = "\\w+\\?(?:\\.\\w+\\??)*";
+        Matcher nullable = getMatcher(regex, data);
+        return Objects.nonNull(data) && nullable.matches();
     }
 
-    public List<String> getFullFieldNameList() {
-        if (!isMultiField())
-            throw new IllegalCallerException("Column '" + getFullFieldName() + "' is not a multi-field column.");
-        List<String> fullFieldNameList = new ArrayList<>();
-        for (Column subColumn : getSubColumnList()) {
-            fullFieldNameList.add(subColumn.getFullFieldName());
+    /**
+     * Returns the field of {@code this} column.
+     * For multi-field columns, the fields are delimited by whitespace.
+     * The nullable symbol {@code ?} is also removed.
+     *
+     * @return field
+     */
+    public String getField() {
+        return String.join(" ", getFieldList());
+    }
+
+    /**
+     * Returns a list of fields of {@code this} column.
+     * The nullable symbol {@code ?} is also removed.
+     *
+     * @return list of fields
+     */
+    public List<String> getFieldList() {
+        List<String> fieldList = new ArrayList<>();
+        String regex = "\\w+\\??(?:\\.\\w+\\??)*";
+        Matcher field = getMatcher(regex, data);
+        while (field.find()) {
+            fieldList.add(field.group().replace("?", ""));
         }
-        return fullFieldNameList;
+        return fieldList;
     }
 
-    public String getRelationshipFieldName() {
-        if (isMultiField())
-            throw new IllegalCallerException("Column '" + getFullFieldName() + "' is a multi-field column.");
+    /**
+     * Returns the entity field of {@code this} column.
+     *
+     * @return entity field
+     * @throws IllegalCallerException if {@code this} column is multi-field
+     *                                or if {@code this} column does not contain relationship to another entity.
+     */
+    public String getEntityField() {
         if (!hasRelationship())
-            throw new IllegalCallerException("Column '" + getFullFieldName() + "' has no relationship.");
-        return getFieldNameList().get(0);
+            throw new IllegalCallerException("Column '" + getField() + "' has no relationship.");
+        String regex = "(?<entityField>\\w+)\\??(?:\\.\\w+\\??)+";
+        Matcher entityField = getMatcher(regex, data);
+        entityField.find();
+        return entityField.group("entityField");
     }
 
+    /**
+     * Returns the subfields of {@code this} column as list of {@link Column}.
+     *
+     * @return list of subfield columns
+     * @throws IllegalCallerException if {@code this} column is not multi-field.
+     */
     public List<Column> getSubColumnList() {
         if (!isMultiField())
-            throw new IllegalCallerException("Column '" + getFullFieldName() + "' is not a multi-field column.");
-
+            throw new IllegalCallerException("Column '" + getField() + "' is not a multi-field column.");
         List<Column> subColumnList = new ArrayList<>();
-        for (String fieldData : data.split("\\+")) {
+        for (String fieldData : getFieldList()) {
             Column subColumn = new Column();
             subColumn.setData(fieldData.trim());
             subColumn.setSearchable(searchable);
+            subColumn.setOrderable(orderable);
             subColumn.setSearch(search);
             subColumnList.add(subColumn);
         }
         return subColumnList;
     }
 
-    public String getLeftJoinClause(String leftTableAlias, String rightTableAlias) {
+    /**
+     * Returns the left join clause for {@code this} column with the provided alias.
+     *
+     * @param mainEntityAlias  the alias of the main entity
+     * @param entityFieldAlias the alias of {@code this} column's entity field
+     * @return the left join clause
+     * @throws IllegalCallerException if {@code this} column is multi-field
+     *                                or if {@code this} column does not contain relationship to another entity.
+     */
+    public String getLeftJoinClause(String mainEntityAlias, String entityFieldAlias) {
         StringBuilder stringBuilder = new StringBuilder();
-        String fieldName = getRelationshipFieldName();
+        String entityField = getEntityField();
         stringBuilder.append(" Left Join ");
-        stringBuilder.append(leftTableAlias);
+        stringBuilder.append(mainEntityAlias);
         stringBuilder.append(".");
-        stringBuilder.append(fieldName);
+        stringBuilder.append(entityField);
         stringBuilder.append(" ");
-        stringBuilder.append(rightTableAlias);
+        stringBuilder.append(entityFieldAlias);
         return stringBuilder.toString();
     }
 
-    private List<String> getFieldNameList() {
-        List<String> fieldNameList = new ArrayList<>();
-        Pattern fieldPattern = Pattern.compile("\\w+");
-        Matcher matcher = fieldPattern.matcher(data);
-        while (matcher.find() && !isMultiField()) {
-            fieldNameList.add(matcher.group());
-        }
-        return fieldNameList;
+    private Matcher getMatcher(String regex, String input) {
+        Pattern patern = Pattern.compile(regex);
+        return patern.matcher(input);
     }
 
     @Override

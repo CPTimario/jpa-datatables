@@ -6,6 +6,7 @@ import com.github.cptimario.datatables.components.Search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DataTablesParameter {
     private int draw;
@@ -14,11 +15,6 @@ public class DataTablesParameter {
     private Search search;
     private List<Order> order;
     private List<Column> columns;
-
-    public DataTablesParameter() {
-        columns = new ArrayList<>();
-        order = new ArrayList<>();
-    }
 
     public int getDraw() {
         return draw;
@@ -53,6 +49,8 @@ public class DataTablesParameter {
     }
 
     public List<Order> getOrder() {
+        if (Objects.isNull(order))
+            return new ArrayList<>();
         return order;
     }
 
@@ -61,6 +59,8 @@ public class DataTablesParameter {
     }
 
     public List<Column> getColumns() {
+        if (Objects.isNull(columns))
+            return new ArrayList<>();
         return columns;
     }
 
@@ -72,6 +72,13 @@ public class DataTablesParameter {
         return search.getValue();
     }
 
+    /**
+     * Sets the sql date format for the column.
+     *
+     * @implSpec The database must support the 'date_format' function.
+     * @param format sql date format
+     * @param columnIndexes indexes of the columns to be formatted
+     */
     public void setDateColumnFormat(String format, int... columnIndexes) {
         List<Column> columnList = getColumns();
         for (int index : columnIndexes) {
