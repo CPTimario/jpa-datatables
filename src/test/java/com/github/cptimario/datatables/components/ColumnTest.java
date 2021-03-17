@@ -127,10 +127,4 @@ class ColumnTest {
         Throwable exception = assertThrows(IllegalCallerException.class, () -> singleFieldColumn.getSubColumnList());
         assertEquals(exception.getMessage(), message);
     }
-
-    @Test
-    void getLeftJoinClauseTest() {
-        String joinClause = " Left Join parent." + hasRelationshipColumn.getEntityField() + " child";
-        assertEquals(joinClause, hasRelationshipColumn.getLeftJoinClause("parent", "child"));
-    }
 }

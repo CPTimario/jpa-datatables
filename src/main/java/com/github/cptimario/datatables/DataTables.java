@@ -6,7 +6,11 @@ import com.github.cptimario.datatables.components.Order;
 import com.github.cptimario.datatables.components.QueryType;
 import org.hibernate.Session;
 
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Query;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,13 +20,15 @@ public class DataTables<E> {
     private final String entityName;
     private final JoinType joinType;
     private final DataTablesParameter dataTablesParameter;
-    private final Map<String, String> aliasMap;
+    private Map<String, String> aliasMap;
 
     public static <E> DataTables<E> of(Class<E> entity, DataTablesParameter dataTablesParameter) {
-        return new DataTables<>(entity, dataTablesParameter, JoinType.CROSS_JOIN);
+        return DataTables.of(entity, dataTablesParameter, JoinType.CROSS_JOIN);
     }
 
     public static <E> DataTables<E> of(Class<E> entity, DataTablesParameter dataTablesParameter, JoinType joinType) {
+        if (!entity.isAnnotationPresent(Entity.class))
+            throw new IllegalArgumentException(entity.getName() + " is not a valid entity.");
         return new DataTables<>(entity, dataTablesParameter, joinType);
     }
 
@@ -31,8 +37,7 @@ public class DataTables<E> {
         this.entityName = entity.getSimpleName();
         this.dataTablesParameter = dataTablesParameter;
         this.joinType = joinType;
-        this.aliasMap = new HashMap<>();
-        registerAliasMap();
+        initializeAliasMap(entity);
     }
 
     public DataTablesResponse<E> getDataTablesResponse(QueryParameter queryParameter) {
@@ -123,34 +128,20 @@ public class DataTables<E> {
         stringBuilder.append(" ");
         stringBuilder.append(aliasMap.get(entityName));
         if (joinType.equals(JoinType.LEFT_JOIN)) {
-            stringBuilder.append(getLeftJoinClause(dataTablesParameter.getColumns()));
+            stringBuilder.append(getLeftJoinClause());
         }
         return stringBuilder.toString();
     }
 
-    String getLeftJoinClause(List<Column> columnList) {
+    String getLeftJoinClause() {
         Set<String> leftJoinSet = new LinkedHashSet<>();
-        for (Column column : columnList) {
-            if (column.isMultiField()) {
-                for (Column subColumn : column.getSubColumnList()) {
-                    addLeftJoinClause(leftJoinSet, subColumn);
-                }
-            } else {
-                addLeftJoinClause(leftJoinSet, column);
+        String entityAlias = aliasMap.get(entityName);
+        for (Map.Entry<String, String> aliasEntry : aliasMap.entrySet()) {
+            if (!aliasEntry.getKey().equals(entityName)) {
+                leftJoinSet.add(" Left Join " + entityAlias + "." + aliasEntry.getKey() + " " + aliasEntry.getValue());
             }
         }
         return String.join(" ", leftJoinSet);
-    }
-
-    private void addLeftJoinClause(Set<String> leftJoinSet, Column column) {
-        if (column.hasRelationship()) {
-            String fieldName = column.getEntityField();
-            registerAlias(fieldName);
-            String mainEntityAlias = aliasMap.get(entityName);
-            String entityFieldAlias = aliasMap.get(fieldName);
-            String leftJoinClause = column.getLeftJoinClause(mainEntityAlias, entityFieldAlias);
-            leftJoinSet.add(leftJoinClause);
-        }
     }
 
     String getWhereClause(QueryParameter queryParameter, QueryType queryType) {
@@ -319,33 +310,27 @@ public class DataTables<E> {
         return aliasMap.get(entityName);
     }
 
-    private void registerAliasMap() {
+    private void initializeAliasMap(Class<E> entity) {
+        aliasMap = new LinkedHashMap<>();
         aliasMap.put(entityName, getCamelCase(entityName));
-        for (Column column : dataTablesParameter.getColumns()) {
-            registerAlias(column);
+        if (joinType.equals(JoinType.LEFT_JOIN)) {
+            Field[] entityFields = entity.getDeclaredFields();
+            for (Field field : entityFields) {
+                registerAlias(field);
+            }
         }
     }
 
-    private void registerAlias(Column column) {
-        if (column.isMultiField()) {
-            for (Column subColumn : column.getSubColumnList()) {
-                registerAlias(subColumn);
-            }
-        } else if (column.hasRelationship() && joinType.equals(JoinType.LEFT_JOIN)) {
-            registerAlias(column.getEntityField());
+    private void registerAlias(Field field) {
+        if (field.isAnnotationPresent(ManyToOne.class) || field.isAnnotationPresent(OneToOne.class)) {
+            registerAlias(field.getName());
         }
     }
 
     private void registerAlias(String fieldName) {
         if (Objects.isNull(aliasMap.get(fieldName))) {
-            StringBuilder stringBuilder = new StringBuilder();
-            String[] relationshipFieldNames = fieldName.split("\\.");
-            for (String field : relationshipFieldNames) {
-                stringBuilder.append(getAliasPrefix(field));
-                stringBuilder.append("_");
-            }
-            stringBuilder.append(aliasMap.size());
-            aliasMap.put(fieldName, stringBuilder.toString());
+            String alias = getAliasPrefix(fieldName) + "_" + aliasMap.size();
+            aliasMap.put(fieldName, alias);
         }
     }
 

@@ -5,13 +5,16 @@ import javax.persistence.*;
 @Entity
 public class ParentEntity {
     @Id
-    Integer id;
+    private Integer id;
 
-    String data;
-
-    @ManyToOne
-    ChildEntity firstChildEntity;
+    private String data;
 
     @ManyToOne
-    ChildEntity secondChildEntity;
+    private ChildEntity firstChildEntity;
+
+    @ManyToOne
+    private ChildEntity secondChildEntity;
+
+    @OneToOne
+    private ChildEntity thirdChildEntity;
 }

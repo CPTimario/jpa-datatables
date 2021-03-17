@@ -168,27 +168,6 @@ public class Column {
         return subColumnList;
     }
 
-    /**
-     * Returns the left join clause for {@code this} column with the provided alias.
-     *
-     * @param mainEntityAlias  the alias of the main entity
-     * @param entityFieldAlias the alias of {@code this} column's entity field
-     * @return the left join clause
-     * @throws IllegalCallerException if {@code this} column is multi-field
-     *                                or if {@code this} column does not contain relationship to another entity.
-     */
-    public String getLeftJoinClause(String mainEntityAlias, String entityFieldAlias) {
-        StringBuilder stringBuilder = new StringBuilder();
-        String entityField = getEntityField();
-        stringBuilder.append(" Left Join ");
-        stringBuilder.append(mainEntityAlias);
-        stringBuilder.append(".");
-        stringBuilder.append(entityField);
-        stringBuilder.append(" ");
-        stringBuilder.append(entityFieldAlias);
-        return stringBuilder.toString();
-    }
-
     private Matcher getMatcher(String regex, String input) {
         Pattern patern = Pattern.compile(regex);
         return patern.matcher(input);
