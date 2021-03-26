@@ -5,9 +5,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class OrderTest {
+    private Order order;
+
     @Test
     void setDirTest() {
-        Order order = new Order();
+        order = new Order();
         order.setDir("asc");
         assertTrue("asc".equalsIgnoreCase(order.getDir()));
         order.setDir("ASC");
@@ -20,7 +22,7 @@ public class OrderTest {
 
     @Test
     void setDirTestInvalidInput() {
-        Order order = new Order();
+        order = new Order();
         String message = "'invalid' not a valid direction.";
         Throwable exception = assertThrows(IllegalArgumentException.class, () -> order.setDir("invalid"));
         assertEquals(message, exception.getMessage());

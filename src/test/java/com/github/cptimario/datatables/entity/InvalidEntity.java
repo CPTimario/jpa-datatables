@@ -1,10 +1,10 @@
 package com.github.cptimario.datatables.entity;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class InvalidEntity {
     private Integer id;
     private String firstData;
     private String secondData;
-    private Date date;
+    private LocalDate date;
 }

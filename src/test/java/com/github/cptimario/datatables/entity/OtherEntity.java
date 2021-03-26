@@ -2,15 +2,12 @@ package com.github.cptimario.datatables.entity;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDate;
 
 @Data
 @Entity
-public class ChildEntity {
+public class OtherEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -20,4 +17,7 @@ public class ChildEntity {
     private String secondData;
 
     private LocalDate date;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private ChildEntity childEntity;
 }

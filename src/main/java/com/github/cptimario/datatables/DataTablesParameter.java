@@ -3,73 +3,42 @@ package com.github.cptimario.datatables;
 import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.Order;
 import com.github.cptimario.datatables.components.Search;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Data
 public class DataTablesParameter {
     private int draw;
     private int start;
     private int length;
-    private Search search;
     private List<Order> order;
     private List<Column> columns;
 
-    public int getDraw() {
-        return draw;
-    }
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private Search search;
 
-    public void setDraw(int draw) {
-        this.draw = draw;
-    }
-
-    public int getStart() {
-        return start;
-    }
-
-    public void setStart(int start) {
-        this.start = start;
-    }
-
-    public int getLength() {
-        return length;
-    }
-
-    public void setLength(int length) {
-        this.length = length;
-    }
-
-    public Search getSearch() {
-        return search;
-    }
-
-    public void setSearch(Search search) {
-        this.search = search;
-    }
-
-    public List<Order> getOrder() {
-        if (Objects.isNull(order))
-            return new ArrayList<>();
-        return order;
-    }
-
-    public void setOrder(List<Order> order) {
-        this.order = order;
-    }
-
-    public List<Column> getColumns() {
-        if (Objects.isNull(columns))
-            return new ArrayList<>();
-        return columns;
-    }
-
-    public void setColumns(List<Column> columns) {
-        this.columns = columns;
+    public DataTablesParameter() {
+        setDraw(1);
+        setStart(0);
+        setLength(10);
+        setSearch(new Search(""));
+        setColumns(new ArrayList<>());
+        setOrder(new ArrayList<>());
     }
 
     public String getSearchValue() {
         return search.getValue();
+    }
+
+    public void setSearchValue(String searchValue) {
+        search.setValue(searchValue);
     }
 
     /**
