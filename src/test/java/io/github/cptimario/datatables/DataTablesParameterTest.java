@@ -1,6 +1,6 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
-import com.github.cptimario.datatables.components.Column;
+import io.github.cptimario.datatables.components.Column;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

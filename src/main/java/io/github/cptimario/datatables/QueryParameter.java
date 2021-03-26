@@ -1,4 +1,4 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

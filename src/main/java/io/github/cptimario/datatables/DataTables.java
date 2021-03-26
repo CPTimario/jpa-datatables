@@ -1,7 +1,7 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
-import com.github.cptimario.datatables.components.Column;
-import com.github.cptimario.datatables.components.Order;
+import io.github.cptimario.datatables.components.Column;
+import io.github.cptimario.datatables.components.Order;
 
 import javax.persistence.*;
 import java.lang.reflect.Field;
@@ -220,7 +220,7 @@ public class DataTables<E> {
         Set<String> orderableColumnsConditions = new LinkedHashSet<>();
         for (Order order : dataTablesParameter.getOrder()) {
             int index = order.getColumn();
-            Column column = dataTablesParameter.getColumns().get(index);
+            io.github.cptimario.datatables.components.Column column = dataTablesParameter.getColumns().get(index);
             if (column.isOrderable()) {
                 orderableColumnsConditions.add(getOrderCondition(order));
             }
@@ -251,7 +251,7 @@ public class DataTables<E> {
     String getSearchCondition(QueryParameter queryParameter) {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> searchQueryList = new ArrayList<>();
-        for (Column column : dataTablesParameter.getColumns()) {
+        for (io.github.cptimario.datatables.components.Column column : dataTablesParameter.getColumns()) {
             String searchString = getSearchString(column);
             if (column.isSearchable() && !"".equals(searchString)) {
                 String fieldName = getQueryFieldName(column, true);
@@ -288,18 +288,18 @@ public class DataTables<E> {
         return stringBuilder.toString();
     }
 
-    String getQueryFieldName(Column column) {
+    String getQueryFieldName(io.github.cptimario.datatables.components.Column column) {
         return getQueryFieldName(column, false);
     }
 
-    String getQueryFieldName(Column column, boolean isFormatted) {
+    String getQueryFieldName(io.github.cptimario.datatables.components.Column column, boolean isFormatted) {
         if (!column.isMultiField()) {
             return getSingleFieldColumnQueryFieldName(column, isFormatted);
         }
         return getMultiFieldColumnQueryFieldName(column, isFormatted);
     }
 
-    private String getSingleFieldColumnQueryFieldName(Column column, boolean isFormatted) {
+    private String getSingleFieldColumnQueryFieldName(io.github.cptimario.datatables.components.Column column, boolean isFormatted) {
         StringBuilder stringBuilder = new StringBuilder();
         String fieldName = column.getData();
         String alias = getColumnAlias(column);
@@ -314,17 +314,17 @@ public class DataTables<E> {
         return stringBuilder.toString();
     }
 
-    private String getMultiFieldColumnQueryFieldName(Column column, boolean isFormatted) {
+    private String getMultiFieldColumnQueryFieldName(io.github.cptimario.datatables.components.Column column, boolean isFormatted) {
         List<String> queryFieldNameList = new ArrayList<>();
         String fieldDelimiter = column.getFieldDelimiter();
-        for (Column subColumn : column.getSubColumnList()) {
+        for (io.github.cptimario.datatables.components.Column subColumn : column.getSubColumnList()) {
             String queryFieldName = getSingleFieldColumnQueryFieldName(subColumn, isFormatted);
             queryFieldNameList.add(queryFieldName);
         }
         return "Concat(" + String.join(", '" + fieldDelimiter + "', ", queryFieldNameList) + ")";
     }
 
-    String getSearchString(Column column) {
+    String getSearchString(io.github.cptimario.datatables.components.Column column) {
         if (!"".equals(column.getSearchValue())) {
             return column.getSearchValue();
         }

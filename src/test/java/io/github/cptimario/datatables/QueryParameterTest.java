@@ -1,4 +1,4 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

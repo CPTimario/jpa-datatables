@@ -1,6 +1,6 @@
-package com.github.cptimario.datatables.repository;
+package io.github.cptimario.datatables.repository;
 
-import com.github.cptimario.datatables.entity.ParentEntity;
+import io.github.cptimario.datatables.entity.ParentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

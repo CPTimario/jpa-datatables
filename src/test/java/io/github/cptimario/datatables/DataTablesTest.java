@@ -1,9 +1,8 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
-import com.github.cptimario.datatables.components.Column;
-import com.github.cptimario.datatables.components.Search;
-import com.github.cptimario.datatables.entity.InvalidEntity;
-import com.github.cptimario.datatables.entity.ParentEntity;
+import io.github.cptimario.datatables.components.Column;
+import io.github.cptimario.datatables.entity.InvalidEntity;
+import io.github.cptimario.datatables.entity.ParentEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

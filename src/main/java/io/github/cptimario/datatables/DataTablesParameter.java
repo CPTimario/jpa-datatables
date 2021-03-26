@@ -1,8 +1,8 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
-import com.github.cptimario.datatables.components.Column;
-import com.github.cptimario.datatables.components.Order;
-import com.github.cptimario.datatables.components.Search;
+import io.github.cptimario.datatables.components.Column;
+import io.github.cptimario.datatables.components.Order;
+import io.github.cptimario.datatables.components.Search;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -10,7 +10,6 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Data
 public class DataTablesParameter {

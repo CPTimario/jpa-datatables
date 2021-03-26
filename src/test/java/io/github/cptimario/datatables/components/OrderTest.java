@@ -1,4 +1,4 @@
-package com.github.cptimario.datatables.components;
+package io.github.cptimario.datatables.components;
 
 import org.junit.jupiter.api.Test;
 

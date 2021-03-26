@@ -1,4 +1,4 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;

@@ -1,11 +1,11 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
-import com.github.cptimario.datatables.components.Column;
-import com.github.cptimario.datatables.components.Order;
-import com.github.cptimario.datatables.entity.ChildEntity;
-import com.github.cptimario.datatables.entity.OtherEntity;
-import com.github.cptimario.datatables.entity.ParentEntity;
-import com.github.cptimario.datatables.repository.TestRepository;
+import io.github.cptimario.datatables.components.Column;
+import io.github.cptimario.datatables.components.Order;
+import io.github.cptimario.datatables.entity.ChildEntity;
+import io.github.cptimario.datatables.entity.OtherEntity;
+import io.github.cptimario.datatables.entity.ParentEntity;
+import io.github.cptimario.datatables.repository.TestRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

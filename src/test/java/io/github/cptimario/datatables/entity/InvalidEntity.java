@@ -1,4 +1,4 @@
-package com.github.cptimario.datatables.entity;
+package io.github.cptimario.datatables.entity;
 
 import java.time.LocalDate;
 

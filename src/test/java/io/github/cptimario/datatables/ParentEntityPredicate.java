@@ -1,8 +1,8 @@
-package com.github.cptimario.datatables;
+package io.github.cptimario.datatables;
 
-import com.github.cptimario.datatables.entity.ChildEntity;
-import com.github.cptimario.datatables.entity.OtherEntity;
-import com.github.cptimario.datatables.entity.ParentEntity;
+import io.github.cptimario.datatables.entity.ChildEntity;
+import io.github.cptimario.datatables.entity.OtherEntity;
+import io.github.cptimario.datatables.entity.ParentEntity;
 
 import java.util.Objects;
 import java.util.function.Predicate;
