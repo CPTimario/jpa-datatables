@@ -3,7 +3,6 @@ package com.github.cptimario.datatables;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -64,9 +63,6 @@ public class QueryParameter extends HashMap<String, Object> {
      * @param condition additional where condition
      */
     public void addWhereCondition(String condition) {
-        if (Objects.isNull(whereConditions)) {
-            whereConditions = new LinkedHashSet<>();
-        }
         if (Objects.nonNull(condition) && !"".equals(condition.trim())) {
             whereConditions.add(condition);
         }
@@ -78,9 +74,6 @@ public class QueryParameter extends HashMap<String, Object> {
      * @param field additional group by field
      */
     public void addGroupByField(String field) {
-        if (Objects.isNull(groupByFields)) {
-            groupByFields = new LinkedHashSet<>();
-        }
         if (Objects.nonNull(field) && !"".equals(field.trim())) {
             groupByFields.add(field);
         }
@@ -92,9 +85,6 @@ public class QueryParameter extends HashMap<String, Object> {
      * @param condition additional having conditions
      */
     public void addHavingCondition(String condition) {
-        if (Objects.isNull(havingConditions)) {
-            havingConditions = new LinkedHashSet<>();
-        }
         if (Objects.nonNull(condition) && !"".equals(condition.trim())) {
             havingConditions.add(condition);
         }
@@ -106,9 +96,6 @@ public class QueryParameter extends HashMap<String, Object> {
      * @param condition additional order condition
      */
     public void addOrderCondition(String condition) {
-        if (Objects.isNull(orderConditions)) {
-            orderConditions = new LinkedHashSet<>();
-        }
         if (Objects.nonNull(condition) && !"".equals(condition.trim())) {
             orderConditions.add(condition);
         }
