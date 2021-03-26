@@ -18,23 +18,12 @@ public class QueryParameter extends HashMap<String, Object> {
     private LinkedHashSet<String> havingConditions;
     private LinkedHashSet<String> orderConditions;
 
-    @EqualsAndHashCode.Exclude
-    private EntityManager entityManager;
-
     public QueryParameter() {
        setSelectClause("");
-    }
-
-    public QueryParameter(EntityManager entityManager) {
-        this();
-        setEntityManager(entityManager);
-    }
-
-    public LinkedHashSet<String> getWhereConditions() {
-        if (Objects.isNull(whereConditions)) {
-            return new LinkedHashSet<>();
-        }
-        return whereConditions;
+       setWhereConditions(new LinkedHashSet<>());
+       setGroupByFields(new LinkedHashSet<>());
+       setHavingConditions(new LinkedHashSet<>());
+       setOrderConditions(new LinkedHashSet<>());
     }
 
     public void setWhereConditions(LinkedHashSet<String> whereConditions) {
@@ -45,13 +34,6 @@ public class QueryParameter extends HashMap<String, Object> {
         this.whereConditions = new LinkedHashSet<>(whereConditions);
     }
 
-    public LinkedHashSet<String> getGroupByFields() {
-        if (Objects.isNull(groupByFields)) {
-            return new LinkedHashSet<>();
-        }
-        return groupByFields;
-    }
-
     public void setGroupByFields(LinkedHashSet<String> groupByFields) {
         this.groupByFields = groupByFields;
     }
@@ -60,26 +42,12 @@ public class QueryParameter extends HashMap<String, Object> {
         this.groupByFields = new LinkedHashSet<>(groupByFields);
     }
 
-    public LinkedHashSet<String> getHavingConditions() {
-        if (Objects.isNull(havingConditions)) {
-            return new LinkedHashSet<>();
-        }
-        return havingConditions;
-    }
-
     public void setHavingConditions(LinkedHashSet<String> havingConditions) {
         this.havingConditions = havingConditions;
     }
 
     public void setHavingConditions(List<String> havingConditions) {
         this.havingConditions = new LinkedHashSet<>(havingConditions);
-    }
-
-    public LinkedHashSet<String> getOrderConditions() {
-        if (Objects.isNull(orderConditions)) {
-            return new LinkedHashSet<>();
-        }
-        return orderConditions;
     }
 
     public void setOrderConditions(LinkedHashSet<String> orderConditions) {

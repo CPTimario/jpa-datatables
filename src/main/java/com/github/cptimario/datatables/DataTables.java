@@ -32,26 +32,36 @@ public class DataTables<E> {
     }
 
     /**
-     * Returns the datatables response of this datatable with the specified query parameters.
+     * Returns the datatables response of this datatable
      *
-     * @param queryParameter the parameters for the datatables query
+     * @param entityManager the entity manager
      * @return the datatables response
      */
-    public DataTablesResponse<E> getDataTablesResponse(QueryParameter queryParameter) {
+    public DataTablesResponse<E> getDataTablesResponse(EntityManager entityManager) {
+        return getDataTablesResponse(entityManager, new QueryParameter());
+    }
+
+    /**
+     * Returns the datatables response of this datatable with additional query parameters.
+     *
+     * @param entityManager the entity manager
+     * @param queryParameter the additional query parameters
+     * @return the datatables response
+     */
+    public DataTablesResponse<E> getDataTablesResponse(EntityManager entityManager, QueryParameter queryParameter) {
         DataTablesResponse<E> dataTablesResponse = new DataTablesResponse<>();
-        List<E> resultList = getSearchResultList(queryParameter);
+        List<E> resultList = getSearchResultList(entityManager, queryParameter);
         dataTablesResponse.setDraw(dataTablesParameter.getDraw());
         dataTablesResponse.setData(resultList);
         dataTablesResponse.setResultList(resultList);
-        dataTablesResponse.setRecordsTotal(getRecordsTotalCount(queryParameter));
-        dataTablesResponse.setRecordsFiltered(getRecordsFilteredCount(queryParameter));
+        dataTablesResponse.setRecordsTotal(getRecordsTotalCount(entityManager, queryParameter));
+        dataTablesResponse.setRecordsFiltered(getRecordsFilteredCount(entityManager, queryParameter));
         return dataTablesResponse;
     }
 
     @SuppressWarnings("unchecked")
-    List<E> getSearchResultList(QueryParameter queryParameter) {
+    List<E> getSearchResultList(EntityManager entityManager, QueryParameter queryParameter) {
         QueryParameter resultListParameter = queryParameter.clone();
-        EntityManager entityManager = queryParameter.getEntityManager();
         String queryString = getQuery(resultListParameter, QueryType.RESULT_LIST);
         Query query = entityManager.createQuery(queryString);
         for (Map.Entry<String, Object> parameter : resultListParameter.entrySet()) {
@@ -62,17 +72,15 @@ public class DataTables<E> {
         return (List<E>) query.getResultList();
     }
 
-    long getRecordsTotalCount(QueryParameter queryParameter) {
+    long getRecordsTotalCount(EntityManager entityManager, QueryParameter queryParameter) {
         QueryParameter totalCountParameter = queryParameter.clone();
-        EntityManager entityManager = queryParameter.getEntityManager();
         String queryString = getQuery(totalCountParameter, QueryType.TOTAL_COUNT);
         Query query = entityManager.createQuery(queryString);
         return (long) query.getSingleResult();
     }
 
-    long getRecordsFilteredCount(QueryParameter queryParameter) {
+    long getRecordsFilteredCount(EntityManager entityManager, QueryParameter queryParameter) {
         QueryParameter filteredCountParameter = queryParameter.clone();
-        EntityManager entityManager = queryParameter.getEntityManager();
         String queryString = getQuery(filteredCountParameter, QueryType.FILTERED_COUNT);
         Query query = entityManager.createQuery(queryString);
         for (Map.Entry<String, Object> parameter : filteredCountParameter.entrySet()) {

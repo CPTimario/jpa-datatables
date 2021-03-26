@@ -2,7 +2,6 @@ package com.github.cptimario.datatables;
 
 import com.github.cptimario.datatables.components.Column;
 import com.github.cptimario.datatables.components.Order;
-import com.github.cptimario.datatables.components.Search;
 import com.github.cptimario.datatables.entity.ChildEntity;
 import com.github.cptimario.datatables.entity.OtherEntity;
 import com.github.cptimario.datatables.entity.ParentEntity;
@@ -15,7 +14,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
@@ -36,7 +34,6 @@ public class DataTablesQueryTest {
     private List<Column> columnList;
     private List<Order> orderList;
     private List<ParentEntity> parentEntityList;
-    private QueryParameter queryParameter;
     private DataTablesParameter dataTablesParameter;
     private DataTables<ParentEntity> dataTables;
     private DataTablesResponse<ParentEntity> dataTablesResponse;
@@ -135,8 +132,7 @@ public class DataTablesQueryTest {
         String searchValue = "first";
         dataTablesParameter = getDataTablesParameter(draw, startIndex, length, searchValue);
         dataTables = DataTables.of(ParentEntity.class, dataTablesParameter);
-        queryParameter = new QueryParameter(entityManager);
-        dataTablesResponse = dataTables.getDataTablesResponse(queryParameter);
+        dataTablesResponse = dataTables.getDataTablesResponse(entityManager);
         List<ParentEntity> filteredList = getFilteredListBySearchValue(searchValue);
         List<ParentEntity> resultList = IntStream.range(startIndex, startIndex + length).mapToObj(filteredList::get).collect(Collectors.toList());
         DataTablesResponse<ParentEntity> expected = new DataTablesResponse<>();
@@ -156,8 +152,7 @@ public class DataTablesQueryTest {
         String searchValue = "first";
         dataTablesParameter = getDataTablesParameter(draw, startIndex, length, searchValue);
         dataTables = DataTables.of(ParentEntity.class, dataTablesParameter);
-        queryParameter = new QueryParameter(entityManager);
-        dataTablesResponse = dataTables.getDataTablesResponse(queryParameter);
+        dataTablesResponse = dataTables.getDataTablesResponse(entityManager);
         List<ParentEntity> filteredList = getFilteredListBySearchValue(searchValue);
         List<ParentEntity> resultList = IntStream.range(startIndex, startIndex + length).mapToObj(filteredList::get).collect(Collectors.toList());
         DataTablesResponse<ParentEntity> expected = new DataTablesResponse<>();
@@ -177,8 +172,7 @@ public class DataTablesQueryTest {
         String searchValue = "first";
         dataTablesParameter = getDataTablesParameter(draw, startIndex, length, searchValue);
         dataTables = DataTables.of(ParentEntity.class, dataTablesParameter);
-        queryParameter = new QueryParameter(entityManager);
-        dataTablesResponse = dataTables.getDataTablesResponse(queryParameter);
+        dataTablesResponse = dataTables.getDataTablesResponse(entityManager);
         List<ParentEntity> filteredList = getFilteredListBySearchValue(searchValue);
         List<ParentEntity> resultList = IntStream.range(startIndex, startIndex + length).mapToObj(filteredList::get).collect(Collectors.toList());
         DataTablesResponse<ParentEntity> expected = new DataTablesResponse<>();
@@ -198,8 +192,7 @@ public class DataTablesQueryTest {
         String searchValue = "%";
         dataTablesParameter = getDataTablesParameter(draw, startIndex, length, searchValue);
         dataTables = DataTables.of(ParentEntity.class, dataTablesParameter);
-        queryParameter = new QueryParameter(entityManager);
-        dataTablesResponse = dataTables.getDataTablesResponse(queryParameter);
+        dataTablesResponse = dataTables.getDataTablesResponse(entityManager);
         List<ParentEntity> filteredList = getFilteredListBySearchValue(searchValue);
         List<ParentEntity> resultList = IntStream.range(startIndex, startIndex + length).mapToObj(filteredList::get).collect(Collectors.toList());
         DataTablesResponse<ParentEntity> expected = new DataTablesResponse<>();
@@ -219,8 +212,7 @@ public class DataTablesQueryTest {
         String searchValue = "_";
         dataTablesParameter = getDataTablesParameter(draw, startIndex, length, searchValue);
         dataTables = DataTables.of(ParentEntity.class, dataTablesParameter);
-        queryParameter = new QueryParameter(entityManager);
-        dataTablesResponse = dataTables.getDataTablesResponse(queryParameter);
+        dataTablesResponse = dataTables.getDataTablesResponse(entityManager);
         List<ParentEntity> filteredList = getFilteredListBySearchValue(searchValue);
         List<ParentEntity> resultList = IntStream.range(startIndex, startIndex + length).mapToObj(filteredList::get).collect(Collectors.toList());
         DataTablesResponse<ParentEntity> expected = new DataTablesResponse<>();
