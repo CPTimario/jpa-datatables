@@ -1,5 +1,13 @@
 # jpa-datatables
 Server side JPA support for datatables. Generates the datatables response based on the received datatables request from the client side.
+## Maven Dependency
+```xml
+<dependency>
+  <groupId>io.github.cptimario</groupId>
+  <artifactId>jpa-datatables</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
 ## Usage
 ### Basic
 ```java
