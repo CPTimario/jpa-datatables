@@ -9,6 +9,13 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * DataTables class handles the generation of the datatables response to be sent back to the client side
+ *
+ * @param <E> the entity class type
+ * @author Christopher Timario
+ * @version v1.0.0
+ */
 public class DataTables<E> {
     enum QueryType {
         RESULT_LIST, TOTAL_COUNT, FILTERED_COUNT
@@ -18,6 +25,14 @@ public class DataTables<E> {
     private final DataTablesParameter dataTablesParameter;
     private Map<String, String> aliasMap;
 
+    /**
+     * Creates an instance of datatables with the provided entity and datatables parameters
+     *
+     * @param entity              the entity class
+     * @param dataTablesParameter the datatables parameters
+     * @param <E>                 the entity class type
+     * @return datatables instance
+     */
     public static <E> DataTables<E> of(Class<E> entity, DataTablesParameter dataTablesParameter) {
         if (!entity.isAnnotationPresent(Entity.class))
             throw new IllegalArgumentException(entity.getName() + " is not a valid entity.");
@@ -44,7 +59,7 @@ public class DataTables<E> {
     /**
      * Returns the datatables response of this datatable with additional query parameters.
      *
-     * @param entityManager the entity manager
+     * @param entityManager  the entity manager
      * @param queryParameter the additional query parameters
      * @return the datatables response
      */

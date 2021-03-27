@@ -13,7 +13,7 @@ public class DataTablesParameterTest {
     void setDateColumnFormatTest() {
         DataTablesParameter dataTablesParameter = new DataTablesParameter();
         List<Column> columnList = getColumnList();
-        Column formattedColumn = new Column();
+        Column formattedColumn = new Column("data");
         formattedColumn.setFormat("format");
         dataTablesParameter.setColumns(columnList);
         dataTablesParameter.setDateColumnFormat("format", 0, 1, 4);
@@ -26,22 +26,19 @@ public class DataTablesParameterTest {
 
     private List<Column> getColumnList() {
         List<Column> columnList = new ArrayList<>();
-        Column multiField = new Column();
-        multiField.setData("first second");
-        columnList.add(new Column());
-        columnList.add(new Column());
-        columnList.add(new Column());
-        columnList.add(new Column());
+        Column multiField = new Column("first second");
+        columnList.add(new Column("data"));
+        columnList.add(new Column("data"));
+        columnList.add(new Column("data"));
+        columnList.add(new Column("data"));
         columnList.add(multiField);
         return columnList;
     }
 
     private List<Column> getSubColumnList() {
-        Column first = new Column();
-        Column second = new Column();
-        first.setData("first");
+        Column first = new Column("first");
+        Column second = new Column("second");
         first.setFormat("format");
-        second.setData("second");
         second.setFormat("format");
         return List.of(first, second);
     }

@@ -10,6 +10,12 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Column class handles the storage and manipulation of the datatables column parameters received from the client side
+ *
+ * @author Christopher Timario
+ * @version v1.0.0
+ */
 @Data
 public class Column {
     private String data;
@@ -24,23 +30,26 @@ public class Column {
     @ToString.Exclude
     private List<Column> subColumnList;
 
-    public Column() {
-        this("", "");
-    }
-
+    /**
+     * Creates an instance of datatables column with the specified data parameter
+     *
+     * @param data the data parameter
+     */
     public Column(String data) {
         this(data, "");
     }
 
+    /**
+     * Creates an instance of datatables column with the specified data parameter and search text parameter
+     *
+     * @param data       the data parameter
+     * @param searchText the search text parameter
+     */
     public Column(String data, String searchText) {
         setSearchable(true);
         setOrderable(true);
         setSearch(new Search(searchText));
         setData(data);
-    }
-
-    public void setData(String data) {
-        this.data = data;
         if (isMultiField()) {
             initializeSubColumnList();
         }
@@ -49,8 +58,7 @@ public class Column {
     private void initializeSubColumnList() {
         subColumnList = new ArrayList<>();
         for (String fieldData : getFieldList()) {
-            Column subColumn = new Column();
-            subColumn.setData(fieldData.trim());
+            Column subColumn = new Column(fieldData.trim());
             subColumn.setSearchable(searchable);
             subColumn.setOrderable(orderable);
             subColumn.setSearch(search);

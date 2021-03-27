@@ -5,9 +5,14 @@ import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Objects;
 
+/**
+ * DataTablesResponse class handles the additional query parameters needed in generating the datatables response
+ *
+ * @author Christopher Timario
+ * @version v1.0.0
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class QueryParameter extends HashMap<String, Object> {
@@ -17,44 +22,15 @@ public class QueryParameter extends HashMap<String, Object> {
     private LinkedHashSet<String> havingConditions;
     private LinkedHashSet<String> orderConditions;
 
+    /**
+     * Create an instance of query parameters with default values
+     */
     public QueryParameter() {
-       setSelectClause("");
-       setWhereConditions(new LinkedHashSet<>());
-       setGroupByFields(new LinkedHashSet<>());
-       setHavingConditions(new LinkedHashSet<>());
-       setOrderConditions(new LinkedHashSet<>());
-    }
-
-    public void setWhereConditions(LinkedHashSet<String> whereConditions) {
-        this.whereConditions = whereConditions;
-    }
-
-    public void setWhereConditions(List<String> whereConditions) {
-        this.whereConditions = new LinkedHashSet<>(whereConditions);
-    }
-
-    public void setGroupByFields(LinkedHashSet<String> groupByFields) {
-        this.groupByFields = groupByFields;
-    }
-
-    public void setGroupByFields(List<String> groupByFields) {
-        this.groupByFields = new LinkedHashSet<>(groupByFields);
-    }
-
-    public void setHavingConditions(LinkedHashSet<String> havingConditions) {
-        this.havingConditions = havingConditions;
-    }
-
-    public void setHavingConditions(List<String> havingConditions) {
-        this.havingConditions = new LinkedHashSet<>(havingConditions);
-    }
-
-    public void setOrderConditions(LinkedHashSet<String> orderConditions) {
-        this.orderConditions = orderConditions;
-    }
-
-    public void setOrderConditions(List<String> orderConditions) {
-        this.orderConditions = new LinkedHashSet<>(orderConditions);
+        setSelectClause("");
+        setWhereConditions(new LinkedHashSet<>());
+        setGroupByFields(new LinkedHashSet<>());
+        setHavingConditions(new LinkedHashSet<>());
+        setOrderConditions(new LinkedHashSet<>());
     }
 
     /**

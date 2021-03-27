@@ -11,6 +11,12 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DataTablesParameter class handles the storage and manipulation of the datatables parameters received from the client side
+ *
+ * @author Christopher Timario
+ * @version v1.0.0
+ */
 @Data
 public class DataTablesParameter {
     private int draw;
@@ -23,6 +29,9 @@ public class DataTablesParameter {
     @Setter(AccessLevel.PRIVATE)
     private Search search;
 
+    /**
+     * Creates an instance of datatables parameters with default values
+     */
     public DataTablesParameter() {
         setDraw(1);
         setStart(0);
@@ -32,10 +41,20 @@ public class DataTablesParameter {
         setOrder(new ArrayList<>());
     }
 
+    /**
+     * Returns the value of the search parameter received from the client side
+     *
+     * @return the search text value
+     */
     public String getSearchValue() {
         return search.getValue();
     }
 
+    /**
+     * Sets the value of the search parameter
+     *
+     * @param searchValue the value to set to the search parameter
+     */
     public void setSearchValue(String searchValue) {
         search.setValue(searchValue);
     }
@@ -43,9 +62,12 @@ public class DataTablesParameter {
     /**
      * Sets the sql date format for the column.
      *
-     * @implSpec The database must support the 'date_format' function.
-     * @param format sql date format
+     * @param format        sql date format
      * @param columnIndexes indexes of the columns to be formatted
+     * @apiNote This method will format the columns which contains dates so that they can be searched properly
+     * @implSpec The database used must support the 'date_format'
+     * @implNote This implementation will use the 'date_format' function from the database.
+     * If the database used does not support this function, it will throw an exception.
      */
     public void setDateColumnFormat(String format, int... columnIndexes) {
         List<Column> columnList = getColumns();

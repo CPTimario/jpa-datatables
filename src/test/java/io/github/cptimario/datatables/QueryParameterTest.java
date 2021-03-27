@@ -3,7 +3,6 @@ package io.github.cptimario.datatables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,34 +69,6 @@ public class QueryParameterTest {
     void getOrderConditionsTest() {
         assertIterableEquals(orderConditions, queryParameter.getOrderConditions());
         assertIterableEquals(Collections.emptySet(), emptyQueryParameter.getOrderConditions());
-    }
-
-    @Test
-    void setWhereConditionsTestListInput() {
-        List<String> whereConditionList = new ArrayList<>(whereConditions);
-        emptyQueryParameter.setWhereConditions(whereConditionList);
-        assertIterableEquals(whereConditions, emptyQueryParameter.getWhereConditions());
-    }
-
-    @Test
-    void setGroupByFieldsTestListInput() {
-        List<String> groupByFieldList = new ArrayList<>(groupByFields);
-        emptyQueryParameter.setGroupByFields(groupByFieldList);
-        assertIterableEquals(groupByFields, emptyQueryParameter.getGroupByFields());
-    }
-
-    @Test
-    void setHavingConditionsTestListInput() {
-        List<String> havingConditionList = new ArrayList<>(havingConditions);
-        emptyQueryParameter.setHavingConditions(havingConditionList);
-        assertIterableEquals(havingConditions, emptyQueryParameter.getHavingConditions());
-    }
-
-    @Test
-    void setOrderConditionsTestListInput() {
-        List<String> orderConditionList = new ArrayList<>(orderConditions);
-        emptyQueryParameter.setOrderConditions(orderConditionList);
-        assertIterableEquals(orderConditions, emptyQueryParameter.getOrderConditions());
     }
 
     @Test
